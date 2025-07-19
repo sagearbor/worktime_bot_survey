@@ -1,0 +1,22 @@
+[
+  {"group_id": "finance", "activity": "Administration", "sub_activity": "Budget & Financial Management"},
+  {"group_id": "finance", "activity": "Administration", "sub_activity": "Budget & Financial Management"},
+  {"group_id": "finance", "activity": "Meeting", "sub_activity": "Internal Team Meetings"},
+  {"group_id": "finance", "activity": "Meeting", "sub_activity": "Internal Team Meetings"},
+  {"group_id": "it", "activity": "Development", "sub_activity": "IT Systems Support & Development"},
+  {"group_id": "it", "activity": "Development", "sub_activity": "IT Systems Support & Development"},
+  {"group_id": "it", "activity": "Administration", "sub_activity": "Training & Professional Development"},
+  {"group_id": "qa", "activity": "Project Management", "sub_activity": "Clinical Site Management"},
+  {"group_id": "qa", "activity": "Project Management", "sub_activity": "Patient Recruitment & Screening"},
+  {"group_id": "qa", "activity": "Meeting", "sub_activity": "External Partner/Sponsor Meetings"},
+  {"group_id": "ctti", "activity": "Research", "sub_activity": "Writing & Manuscript Preparation"},
+  {"group_id": "ctti", "activity": "Research", "sub_activity": "Grant Writing & Submission"},
+  {"group_id": "ctti", "activity": "Analysis", "sub_activity": "Statistical Analysis & Reporting"},
+  {"group_id": "imaging", "activity": "Project Management", "sub_activity": "Regulatory Submissions & Compliance"},
+  {"group_id": "imaging", "activity": "Project Management", "sub_activity": "Data Collection & Entry"},
+  {"group_id": "imaging", "activity": "Meeting", "sub_activity": "External Partner/Sponsor Meetings"},
+  {"group_id": "imaging", "activity": "Analysis", "sub_activity": "Statistical Analysis & Reporting"},
+  {"group_id": "imaging", "activity": "Other", "sub_activity": ""},
+  {"group_id": "data_solutions", "activity": "Analysis", "sub_activity": "Statistical Analysis & Reporting"},
+  {"group_id": "data_solutions", "activity": "Administration", "sub_activity": "Administrative Tasks (Email, Scheduling)"}
+]

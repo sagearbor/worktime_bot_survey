@@ -230,7 +230,7 @@ Status: Critical Path
 
 
 
-\[ ] Task DB-03: Use a charting library (e.g., Chart.js) to display time allocation by group and activity.
+\[x] Task DB-03: Use a charting library (e.g., Chart.js) to display time allocation by group and activity.
 
 
 
