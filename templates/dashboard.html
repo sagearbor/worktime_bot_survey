@@ -13,25 +13,65 @@
 <body>
     <div class="container">
         <h1 class="title">DCRI Activity Dashboard</h1>
+        <div class="box mb-4">
+            <div class="field">
+                <label class="label" for="group-filter">Group</label>
+                <div class="control">
+                    <div class="select">
+                        <select id="group-filter">
+                            <option value="">All groups</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label" for="start-date">Start Date</label>
+                <div class="control">
+                    <input id="start-date" type="date" class="input">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label" for="end-date">End Date</label>
+                <div class="control">
+                    <input id="end-date" type="date" class="input">
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <button id="apply-filters" class="button is-link">Apply Filters</button>
+                </div>
+            </div>
+        </div>
         <div id="dashboard-content">
-            <!-- Charts will be rendered here in future tasks -->
             <p id="loading-message">Loading results...</p>
         </div>
     </div>
     <script>
-        // Fetch aggregated results from the backend when the page loads
+        // Fetch aggregated results with optional filters and render charts
         document.addEventListener("DOMContentLoaded", async () => {
             const container = document.getElementById("dashboard-content");
-            try {
-                const response = await fetch("/api/results");
-                if (!response.ok) {
-                    throw new Error("Failed to load results");
-                }
-                const data = await response.json();
-                window.dashboardData = data;
-                console.log("Aggregated results", data);
+            const groupSelect = document.getElementById("group-filter");
+            const startDateInput = document.getElementById("start-date");
+            const endDateInput = document.getElementById("end-date");
+            const applyBtn = document.getElementById("apply-filters");
 
-                // Aggregate counts by group and activity
+            async function loadConfig() {
+                try {
+                    const res = await fetch("/api/config");
+                    if (!res.ok) throw new Error("Failed to load configuration");
+                    const cfg = await res.json();
+                    cfg.groups.forEach((g) => {
+                        const opt = document.createElement("option");
+                        opt.value = g.id;
+                        opt.textContent = g.displayName;
+                        groupSelect.appendChild(opt);
+                    });
+                } catch (err) {
+                    console.error("Error loading config:", err);
+                }
+            }
+
+            function renderCharts(data) {
                 const groupTotals = {};
                 const activityTotals = {};
                 data.forEach((row) => {
@@ -73,13 +113,36 @@
                     },
                     options: { responsive: true, plugins: { legend: { display: false } } },
                 });
-            } catch (err) {
-                console.error("Error fetching results:", err);
-                container.textContent = "Error loading results.";
-            } finally {
-                const loadingMsg = document.getElementById("loading-message");
-                if (loadingMsg) loadingMsg.remove();
             }
+
+            async function fetchResults() {
+                const params = new URLSearchParams();
+                if (groupSelect.value) params.set("group_id", groupSelect.value);
+                if (startDateInput.value) params.set("start_date", startDateInput.value);
+                if (endDateInput.value) params.set("end_date", endDateInput.value);
+                const res = await fetch(`/api/results?${params.toString()}`);
+                if (!res.ok) throw new Error("Failed to load results");
+                return res.json();
+            }
+
+            async function updateDashboard() {
+                container.innerHTML = '<p id="loading-message">Loading results...</p>';
+                try {
+                    const data = await fetchResults();
+                    renderCharts(data);
+                } catch (err) {
+                    console.error("Error fetching results:", err);
+                    container.textContent = "Error loading results.";
+                }
+            }
+
+            await loadConfig();
+            await updateDashboard();
+
+            applyBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                updateDashboard();
+            });
         });
     </script>
 </body>

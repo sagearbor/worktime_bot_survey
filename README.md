@@ -242,7 +242,7 @@ Status: Critical Path
 
 
 
-\[ ] Task DB-04: Add filters to the dashboard (e.g., filter by group, date range).
+\[x] Task DB-04: Add filters to the dashboard (e.g., filter by group, date range).
 
 
 

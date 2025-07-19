@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from time_profiler import create_app
+from datetime import datetime
+
+from time_profiler import create_app, SessionLocal, ActivityLog
 from time_profiler.app import load_config
 
 
@@ -44,3 +46,46 @@ def test_results_endpoint_with_data(tmp_path):
     assert data[0]["group_id"] == group_id
     assert data[0]["activity"] == activity
     assert data[0]["count"] == 2
+
+
+def test_results_endpoint_filters(tmp_path):
+    app = setup_app(tmp_path)
+    client = app.test_client()
+
+    config = load_config(Path(app.config["DCRI_CONFIG_PATH"]))
+    group1 = config["groups"][0]["id"]
+    group2 = config["groups"][1]["id"]
+    activity = config["activities"][0]["category"]
+    sub_activity = config["activities"][0]["sub_activities"][0]
+
+    session = SessionLocal()
+    session.add(
+        ActivityLog(
+            group_id=group1,
+            activity=activity,
+            sub_activity=sub_activity,
+            timestamp=datetime(2022, 1, 1),
+        )
+    )
+    session.add(
+        ActivityLog(
+            group_id=group2,
+            activity=activity,
+            sub_activity=sub_activity,
+            timestamp=datetime(2022, 1, 5),
+        )
+    )
+    session.commit()
+    session.close()
+
+    resp = client.get(f"/api/results?group_id={group1}")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data) == 1
+    assert data[0]["group_id"] == group1
+
+    resp = client.get("/api/results?start_date=2022-01-03&end_date=2022-01-06")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data) == 1
+    assert data[0]["group_id"] == group2
