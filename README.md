@@ -272,7 +272,7 @@ Status: Critical Path
 
 
 
-\[ ] Task DEP-02: Write clear deployment instructions for setting up the database and running the application.
+\[x] Task DEP-02: Write clear deployment instructions for setting up the database and running the application.
 
 
 
@@ -284,7 +284,7 @@ Status: Critical Path
 
 
 
-\[ ] Task DEP-03: Finalize all documentation, ensuring the config.json structure and all API endpoints are clearly described.
+\[x] Task DEP-03: Finalize all documentation, ensuring the config.json structure and all API endpoints are clearly described.
 
 
 
@@ -293,4 +293,64 @@ Dependencies: All previous phases
 
 
 Status: Critical Path
+
+
+## Deployment Instructions
+
+### Local Setup
+1. Install Python 3.9 or newer.
+2. Install dependencies:
+   ```bash
+   pip install .
+   ```
+3. Run the database migrations:
+   ```bash
+   alembic upgrade head
+   ```
+4. Start the application:
+   ```bash
+   uvicorn src.time_profiler.main:app --host 0.0.0.0 --port 8000
+   ```
+
+### Docker Compose
+The project includes a `docker-compose.yml` file for running the API with a PostgreSQL
+container.
+
+```bash
+docker compose up --build
+```
+
+The API will be available at `http://localhost:8000`.
+
+## Configuration Reference
+All runtime options are stored in `config/dcri_config.json.example`. Copy this file to
+`config/dcri_config.json` and modify as needed. The structure is:
+
+```json
+{
+  "groups": [
+    { "displayName": "<name>", "id": "<id>", "parent": "<parent>" }
+  ],
+  "activities": [
+    {
+      "category": "<category>",
+      "sub_activities": ["<sub activity>"]
+    }
+  ],
+  "enableFreeTextFeedback": true
+}
+```
+
+* `groups` – list of group objects with a display name, unique id and optional parent group.
+* `activities` – list of activity categories each with optional `sub_activities`.
+* `enableFreeTextFeedback` – when `true`, users may submit optional text feedback.
+
+## API Endpoints
+
+| Method | Endpoint       | Description                                          |
+| ------ | -------------- | ---------------------------------------------------- |
+| GET    | `/api/config`  | Returns the configuration JSON described above.      |
+| POST   | `/api/submit`  | Submit a log entry. Body requires `group_id`, `activity`, and `sub_activity` with optional `feedback`. |
+| GET    | `/api/results` | Aggregated counts of submissions grouped by `group_id` and `activity`. |
+| GET    | `/health`      | Simple health check returning `{"status": "ok"}`.   |
 
