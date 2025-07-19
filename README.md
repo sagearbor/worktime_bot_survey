@@ -62,7 +62,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-03: Implement Alembic for managing database migrations.
+\[x] Task BE-03: Implement Alembic for managing database migrations.
 
 
 
