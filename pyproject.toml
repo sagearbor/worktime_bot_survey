@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dcri-logger"
+version = "0.1.0"
+authors = [
+  { name="DCRI Project Team", email="contact@dcri.org" },
+]
+description = "An interactive survey tool to profile where DCRI teams spend their time."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Framework :: Flask",
+    "Operating System :: OS Independent",
+]
+
+# Core dependencies for the Flask web application and database
+[project.dependencies]
+flask = "^2.3.0"
+sqlalchemy = "^2.0.0"      # For database object-relational mapping (ORM)
+alembic = "^1.13.0"        # For database schema migrations
+python-dotenv = "^1.0.0"   # For managing environment variables
+psycopg2-binary = "^2.9.9" # PostgreSQL adapter, can be swapped for other DBs
+
+# Dependencies for development and testing
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/dcri/dcri-logger"
+"Bug Tracker" = "https://github.com/dcri/dcri-logger/issues"
