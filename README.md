@@ -86,7 +86,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-05: Create a secure API endpoint (POST /api/submit) to receive and validate activity log submissions.
+\[x] Task BE-05: Create a secure API endpoint (POST /api/submit) to receive and validate activity log submissions.
 
 
 
