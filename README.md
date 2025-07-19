@@ -176,7 +176,7 @@ Status: Critical Path
 
 
 
-\[ ] Task FE-05: Implement form submission logic to POST data to /api/submit.
+\[x] Task FE-05: Implement form submission logic to POST data to /api/submit.
 
 
 

@@ -42,6 +42,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="field">
+                        <label class="label" for="sub-activity-select">Sub-Activity</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="sub-activity-select" disabled>
+                                    <option value="">Select sub-activity...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="field" id="feedback-field" style="display: none;">
                         <label class="label" for="feedback">Additional Feedback</label>
                         <div class="control">
@@ -69,6 +79,7 @@
 
                 const groupSelect = document.getElementById("group-select");
                 const activitySelect = document.getElementById("activity-select");
+                const subSelect = document.getElementById("sub-activity-select");
 
                 window.dcriConfig.groups.forEach((g) => {
                     const opt = document.createElement("option");
@@ -84,6 +95,28 @@
                     activitySelect.appendChild(opt);
                 });
 
+                // Populate sub-activities when an activity is chosen
+                function populateSubActivities() {
+                    subSelect.innerHTML = '<option value="">Select sub-activity...</option>';
+                    const selected = window.dcriConfig.activities.find(
+                        (a) => a.category === activitySelect.value
+                    );
+                    if (selected && selected.sub_activities.length) {
+                        selected.sub_activities.forEach((sa) => {
+                            const opt = document.createElement("option");
+                            opt.value = sa;
+                            opt.textContent = sa;
+                            subSelect.appendChild(opt);
+                        });
+                        subSelect.disabled = false;
+                    } else {
+                        subSelect.disabled = true;
+                    }
+                }
+
+                activitySelect.addEventListener("change", populateSubActivities);
+                populateSubActivities();
+
                 const feedbackField = document.getElementById("feedback-field");
                 if (window.dcriConfig.enableFreeTextFeedback) {
                     feedbackField.style.display = "block";
@@ -91,6 +124,33 @@
                     feedbackField.remove();
                 }              
               
+                const form = document.getElementById("activity-form");
+                form.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const payload = {
+                        group_id: groupSelect.value,
+                        activity: activitySelect.value,
+                        sub_activity: subSelect.value,
+                    };
+                    if (window.dcriConfig.enableFreeTextFeedback) {
+                        payload.feedback = document.getElementById("feedback").value;
+                    }
+                    try {
+                        const res = await fetch("/api/submit", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload),
+                        });
+                        if (!res.ok) throw new Error("Failed to submit");
+                        form.reset();
+                        populateSubActivities();
+                        alert("Submission successful");
+                    } catch (err) {
+                        console.error("Error submitting form:", err);
+                        alert("Submission failed");
+                    }
+                });
+
             } catch (err) {
                 console.error("Error fetching configuration:", err);
             }
