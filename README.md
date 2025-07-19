@@ -50,7 +50,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-02: Define database models using SQLAlchemy for ActivityLog.
+\[x] Task BE-02: Define database models using SQLAlchemy for ActivityLog.
 
 
 
