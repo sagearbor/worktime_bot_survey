@@ -98,7 +98,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-06: Implement logic in the submission endpoint to handle the optional feedback text field.
+\[x] Task BE-06: Implement logic in the submission endpoint to handle the optional feedback text field.
 
 
 
