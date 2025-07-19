@@ -7,12 +7,17 @@ engine = None
 SessionLocal = scoped_session(sessionmaker())
 Base = declarative_base()
 
+# Import models so they are registered with SQLAlchemy's metadata
+from . import models  # noqa: F401
+
 
 def init_db(database_url: str):
     """Initialize the database engine and session factory."""
     global engine
     engine = create_engine(database_url)
     SessionLocal.configure(bind=engine)
+    # Ensure tables are created when running without migrations
+    Base.metadata.create_all(bind=engine)
 
 
 def create_app(config_object: dict | None = None) -> Flask:
