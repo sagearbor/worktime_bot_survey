@@ -6,41 +6,56 @@
     <title>DCRI Activity Logging</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <style>
-        body { padding: 2rem; }
+        body {
+            padding: 2rem;
+        }
+        /* Center the form and limit width for large screens */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">DCRI Activity Logging</h1>
-        <form id="activity-form">
-            <div class="field">
-                <label class="label" for="group-select">Group</label>
-                <div class="control">
-                    <select id="group-select" class="input">
-                        <option value="">Select group...</option>
-                    </select>
-                </div>
+        <div class="columns is-centered">
+            <div class="column is-full-mobile is-half-tablet is-one-third-desktop form-container">
+                <h1 class="title has-text-centered">DCRI Activity Logging</h1>
+                <form id="activity-form">
+                    <div class="field">
+                        <label class="label" for="group-select">Group</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="group-select">
+                                    <option value="">Select group...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="activity-select">Activity</label>
+                        <div class="control">
+                            <div class="select is-fullwidth">
+                                <select id="activity-select">
+                                    <option value="">Select activity...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="feedback">Additional Feedback</label>
+                        <div class="control">
+                            <textarea id="feedback" class="textarea" placeholder="Optional"></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-primary is-fullwidth" type="submit">Submit</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="field">
-                <label class="label" for="activity-select">Activity</label>
-                <div class="control">
-                    <select id="activity-select" class="input">
-                        <option value="">Select activity...</option>
-                    </select>
-                </div>
-            </div>
-            <div class="field">
-                <label class="label" for="feedback">Additional Feedback</label>
-                <div class="control">
-                    <textarea id="feedback" class="textarea" placeholder="Optional"></textarea>
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <button class="button is-primary" type="submit">Submit</button>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
 </body>
 </html>
