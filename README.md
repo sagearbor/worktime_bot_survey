@@ -38,7 +38,7 @@ Goal: Build the core Flask server, database models, and API endpoints for managi
 
 
 
-\[ ] Task BE-01: Set up the basic Flask project structure.
+\[x] Task BE-01: Set up the basic Flask project structure.
 
 
 
