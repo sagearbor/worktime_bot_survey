@@ -164,7 +164,7 @@ Status: Critical Path
 
 
 
-\[ ] Task FE-04: Implement logic to read the enableFreeTextFeedback flag and conditionally display the feedback <textarea>.
+\[x] Task FE-04: Implement logic to read the enableFreeTextFeedback flag and conditionally display the feedback <textarea>.
 
 
 
