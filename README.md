@@ -206,7 +206,7 @@ Goal: Create a simple web page to visualize the collected data.
 
 
 
-\[ ] Task DB-01: Create a new HTML page/template for the dashboard (dashboard.html).
+\[x] Task DB-01: Create a new HTML page/template for the dashboard (dashboard.html).
 
 
 
