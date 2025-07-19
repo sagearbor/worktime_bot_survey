@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from flask import Flask, jsonify, request
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
 
 # SQLAlchemy setup
@@ -28,6 +28,7 @@ def init_db(database_url: str):
     """Initialize the database engine and session factory."""
     global engine
     engine = create_engine(database_url)
+    SessionLocal.remove()
     SessionLocal.configure(bind=engine)
     # Ensure tables are created when running without migrations
     Base.metadata.create_all(bind=engine)
@@ -39,7 +40,9 @@ def create_app(config_object: dict | None = None) -> Flask:
 
     # Default configuration
     app.config.setdefault("DATABASE_URL", "sqlite:///dcri_logger.db")
-    default_config_path = Path(__file__).resolve().parents[2] / "config" / "dcri_config.json.example"
+    default_config_path = (
+        Path(__file__).resolve().parents[2] / "config" / "dcri_config.json.example"
+    )
     app.config.setdefault("DCRI_CONFIG_PATH", default_config_path)
 
     if config_object:
@@ -90,6 +93,34 @@ def create_app(config_object: dict | None = None) -> Flask:
             return jsonify({"status": "success", "id": log_entry.id})
         except Exception:  # pragma: no cover - unexpected DB errors
             session.rollback()
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
+    @app.route("/api/results", methods=["GET"])
+    def get_results() -> jsonify:
+        """Return aggregated submission counts by group and activity."""
+        session = SessionLocal()
+        try:
+            rows = (
+                session.query(
+                    models.ActivityLog.group_id,
+                    models.ActivityLog.activity,
+                    func.count(models.ActivityLog.id).label("count"),
+                )
+                .group_by(models.ActivityLog.group_id, models.ActivityLog.activity)
+                .all()
+            )
+            results = [
+                {
+                    "group_id": r.group_id,
+                    "activity": r.activity,
+                    "count": r.count,
+                }
+                for r in rows
+            ]
+            return jsonify(results)
+        except Exception:  # pragma: no cover - unexpected DB errors
             return jsonify({"error": "Server error"}), 500
         finally:
             session.close()

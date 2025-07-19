@@ -110,7 +110,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-07: Create an API endpoint (GET /api/results) to retrieve aggregated submission data.
+\[x] Task BE-07: Create an API endpoint (GET /api/results) to retrieve aggregated submission data.
 
 
 
