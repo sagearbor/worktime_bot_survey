@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCRI Activity Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         body { padding: 2rem; }
     </style>
@@ -26,12 +27,52 @@
                 if (!response.ok) {
                     throw new Error("Failed to load results");
                 }
-                // Store results globally for later chart rendering (DB-03)
-                window.dashboardData = await response.json();
-                console.log("Aggregated results", window.dashboardData);
+                const data = await response.json();
+                window.dashboardData = data;
+                console.log("Aggregated results", data);
 
-                // For now, simply show the raw JSON as a placeholder
-                container.innerHTML = `<pre>${JSON.stringify(window.dashboardData, null, 2)}</pre>`;
+                // Aggregate counts by group and activity
+                const groupTotals = {};
+                const activityTotals = {};
+                data.forEach((row) => {
+                    groupTotals[row.group_id] = (groupTotals[row.group_id] || 0) + row.count;
+                    activityTotals[row.activity] = (activityTotals[row.activity] || 0) + row.count;
+                });
+
+                container.innerHTML = "";
+                const groupCanvas = document.createElement("canvas");
+                container.appendChild(groupCanvas);
+                new Chart(groupCanvas.getContext("2d"), {
+                    type: "bar",
+                    data: {
+                        labels: Object.keys(groupTotals),
+                        datasets: [
+                            {
+                                label: "Time by Group",
+                                data: Object.values(groupTotals),
+                                backgroundColor: "rgba(54, 162, 235, 0.7)",
+                            },
+                        ],
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } },
+                });
+
+                const activityCanvas = document.createElement("canvas");
+                container.appendChild(activityCanvas);
+                new Chart(activityCanvas.getContext("2d"), {
+                    type: "bar",
+                    data: {
+                        labels: Object.keys(activityTotals),
+                        datasets: [
+                            {
+                                label: "Time by Activity",
+                                data: Object.values(activityTotals),
+                                backgroundColor: "rgba(75, 192, 192, 0.7)",
+                            },
+                        ],
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } },
+                });
             } catch (err) {
                 console.error("Error fetching results:", err);
                 container.textContent = "Error loading results.";
