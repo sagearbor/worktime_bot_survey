@@ -18,12 +18,14 @@ classifiers = [
 ]
 
 # Core dependencies for the Flask web application and database
-[project.dependencies]
-flask = "^2.3.0"
-sqlalchemy = "^2.0.0"      # For database object-relational mapping (ORM)
-alembic = "^1.13.0"        # For database schema migrations
-python-dotenv = "^1.0.0"   # For managing environment variables
-psycopg2-binary = "^2.9.9" # PostgreSQL adapter, can be swapped for other DBs
+dependencies = [
+    "flask>=2.3.0",
+    "flask-cors>=4.0.0",      # For Cross-Origin Resource Sharing
+    "sqlalchemy>=2.0.0",      # For database object-relational mapping (ORM)
+    "alembic>=1.13.0",        # For database schema migrations
+    "python-dotenv>=1.0.0",   # For managing environment variables
+    "psycopg2-binary>=2.9.9", # PostgreSQL adapter, can be swapped for other DBs
+]
 
 # Dependencies for development and testing
 [project.optional-dependencies]

@@ -37,6 +37,19 @@
                 </div>
             </div>
             <div class="field">
+                <label class="label">View Type</label>
+                <div class="control">
+                    <label class="radio">
+                        <input type="radio" name="view-type" value="count" checked>
+                        Count
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="view-type" value="percentage">
+                        Percentage
+                    </label>
+                </div>
+            </div>
+            <div class="field">
                 <div class="control">
                     <button id="apply-filters" class="button is-link">Apply Filters</button>
                 </div>
@@ -79,7 +92,33 @@
                     activityTotals[row.activity] = (activityTotals[row.activity] || 0) + row.count;
                 });
 
+                // Check if percentage view is selected
+                const isPercentage = document.querySelector('input[name="view-type"]:checked').value === 'percentage';
+                
+                // Calculate totals for percentage conversion
+                const totalGroupCount = Object.values(groupTotals).reduce((sum, count) => sum + count, 0);
+                const totalActivityCount = Object.values(activityTotals).reduce((sum, count) => sum + count, 0);
+
+                // Convert to percentages if needed
+                const groupData = isPercentage 
+                    ? Object.values(groupTotals).map(count => ((count / totalGroupCount) * 100).toFixed(1))
+                    : Object.values(groupTotals);
+                
+                const activityData = isPercentage 
+                    ? Object.values(activityTotals).map(count => ((count / totalActivityCount) * 100).toFixed(1))
+                    : Object.values(activityTotals);
+
+                const yAxisLabel = isPercentage ? "Percentage (%)" : "Number of Entries";
+                const datasetLabel = isPercentage ? "%" : "Count";
+
                 container.innerHTML = "";
+                
+                // Group Chart
+                const groupTitle = document.createElement("h2");
+                groupTitle.className = "subtitle";
+                groupTitle.textContent = `Activity Distribution by Group (${datasetLabel})`;
+                container.appendChild(groupTitle);
+                
                 const groupCanvas = document.createElement("canvas");
                 container.appendChild(groupCanvas);
                 new Chart(groupCanvas.getContext("2d"), {
@@ -88,14 +127,38 @@
                         labels: Object.keys(groupTotals),
                         datasets: [
                             {
-                                label: "Time by Group",
-                                data: Object.values(groupTotals),
+                                label: `Time by Group (${datasetLabel})`,
+                                data: groupData,
                                 backgroundColor: "rgba(54, 162, 235, 0.7)",
                             },
                         ],
                     },
-                    options: { responsive: true, plugins: { legend: { display: false } } },
+                    options: { 
+                        responsive: true, 
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: yAxisLabel
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Groups'
+                                }
+                            }
+                        }
+                    },
                 });
+
+                // Activity Chart
+                const activityTitle = document.createElement("h2");
+                activityTitle.className = "subtitle mt-5";
+                activityTitle.textContent = `Activity Distribution by Type (${datasetLabel})`;
+                container.appendChild(activityTitle);
 
                 const activityCanvas = document.createElement("canvas");
                 container.appendChild(activityCanvas);
@@ -105,13 +168,31 @@
                         labels: Object.keys(activityTotals),
                         datasets: [
                             {
-                                label: "Time by Activity",
-                                data: Object.values(activityTotals),
+                                label: `Time by Activity (${datasetLabel})`,
+                                data: activityData,
                                 backgroundColor: "rgba(75, 192, 192, 0.7)",
                             },
                         ],
                     },
-                    options: { responsive: true, plugins: { legend: { display: false } } },
+                    options: { 
+                        responsive: true, 
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: yAxisLabel
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Activity Types'
+                                }
+                            }
+                        }
+                    },
                 });
             }
 
@@ -142,6 +223,11 @@
             applyBtn.addEventListener("click", (e) => {
                 e.preventDefault();
                 updateDashboard();
+            });
+
+            // Update charts when view type changes
+            document.querySelectorAll('input[name="view-type"]').forEach(radio => {
+                radio.addEventListener('change', updateDashboard);
             });
         });
     </script>

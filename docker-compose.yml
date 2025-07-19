@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: uvicorn src.time_profiler.main:app --host 0.0.0.0 --port 8000 --reload
+    command: python -m flask --app src.time_profiler.main:app run --host 0.0.0.0 --port 8000 --reload --debug
     volumes:
       - ./src:/usr/src/app/src
       - ./config:/usr/src/app/config

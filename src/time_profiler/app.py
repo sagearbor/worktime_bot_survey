@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
 
@@ -37,7 +38,10 @@ def init_db(database_url: str):
 
 def create_app(config_object: dict | None = None) -> Flask:
     """Create and configure the Flask application."""
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='../../templates')
+    
+    # Enable CORS for all routes
+    CORS(app)
 
     # Default configuration
     app.config.setdefault("DATABASE_URL", "sqlite:///dcri_logger.db")
@@ -157,5 +161,15 @@ def create_app(config_object: dict | None = None) -> Flask:
     @app.route("/health")
     def health() -> dict:
         return {"status": "ok"}
+
+    @app.route("/")
+    def index():
+        """Serve the main survey page."""
+        return render_template("index.html")
+    
+    @app.route("/dashboard")
+    def dashboard():
+        """Serve the dashboard page."""
+        return render_template("dashboard.html")
 
     return app

@@ -299,18 +299,58 @@ Status: Critical Path
 
 ### Local Setup
 1. Install Python 3.9 or newer.
-2. Install dependencies:
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   ```
+   
+   **Activate the virtual environment:**
+   
+   - **Git Bash (Windows):**
+     ```bash
+     source venv/Scripts/activate
+     ```
+   
+   - **Command Prompt/PowerShell (Windows):**
+     ```cmd
+     venv\Scripts\activate
+     ```
+   
+   - **macOS/Linux/WSL:**
+     ```bash
+     source venv/bin/activate
+     ```
+3. Install dependencies:
    ```bash
    pip install .
    ```
-3. Run the database migrations:
+4. Run the database migrations:
    ```bash
    alembic upgrade head
    ```
-4. Start the application:
+5. Load mock data (optional, for testing):
    ```bash
-   uvicorn src.time_profiler.main:app --host 0.0.0.0 --port 8000
+   python -m src.time_profiler.seed_mock_data
    ```
+6. Start the application:
+   ```bash
+   python -m src.time_profiler.main
+   ```
+   
+   **Alternative:** Use Flask's development server:
+   ```bash
+   python -m flask --app src.time_profiler.main:app run --host 0.0.0.0 --port 8000
+   ```
+
+The application will be available at:
+- Survey form: `http://localhost:8000/`
+- Dashboard: `http://localhost:8000/dashboard`
+- API endpoints: `http://localhost:8000/api/config`, `http://localhost:8000/api/results`
+
+**Note:** Remember to activate your virtual environment each time you work on the project in a new terminal session:
+- Git Bash: `source venv/Scripts/activate`
+- Command Prompt/PowerShell: `venv\Scripts\activate`  
+- macOS/Linux/WSL: `source venv/bin/activate`
 
 ### Docker Compose
 The project includes a `docker-compose.yml` file for running the API with a PostgreSQL
