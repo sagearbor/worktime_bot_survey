@@ -98,7 +98,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-06: Implement logic in the submission endpoint to handle the optional feedback text field.
+\[x] Task BE-06: Implement logic in the submission endpoint to handle the optional feedback text field.
 
 
 
@@ -110,7 +110,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-07: Create an API endpoint (GET /api/results) to retrieve aggregated submission data.
+\[x] Task BE-07: Create an API endpoint (GET /api/results) to retrieve aggregated submission data.
 
 
 
@@ -152,7 +152,7 @@ Status: Critical Path
 
 
 
-\[ ] Task FE-03: Implement logic to dynamically populate the "Group" and "Activity" dropdowns.
+\[x] Task FE-03: Implement logic to dynamically populate the "Group" and "Activity" dropdowns.
 
 
 
