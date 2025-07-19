@@ -74,7 +74,7 @@ Status: Critical Path
 
 
 
-\[ ] Task BE-04: Create an API endpoint (GET /api/config) to serve the dcri\_config.json file.
+\[x] Task BE-04: Create an API endpoint (GET /api/config) to serve the dcri\_config.json file.
 
 
 
