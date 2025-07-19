@@ -128,7 +128,7 @@ Goal: Develop the user-facing survey UI as a static HTML/CSS/JS application.
 
 
 
-\[ ] Task FE-01: Create the main index.html file with the basic form structure and styling.
+\[x] Task FE-01: Create the main index.html file with the basic form structure and styling.
 
 
 
