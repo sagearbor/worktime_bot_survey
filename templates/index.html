@@ -42,7 +42,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="field">
+                    <div class="field" id="feedback-field" style="display: none;">
                         <label class="label" for="feedback">Additional Feedback</label>
                         <div class="control">
                             <textarea id="feedback" class="textarea" placeholder="Optional"></textarea>
@@ -66,6 +66,13 @@
                 }
                 window.dcriConfig = await response.json();
                 console.log("Configuration loaded", window.dcriConfig);
+
+                const feedbackField = document.getElementById("feedback-field");
+                if (window.dcriConfig.enableFreeTextFeedback) {
+                    feedbackField.style.display = "block";
+                } else {
+                    feedbackField.remove();
+                }
             } catch (err) {
                 console.error("Error fetching configuration:", err);
             }
