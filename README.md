@@ -188,7 +188,7 @@ Status: Critical Path
 
 
 
-\[ ] Task FE-06: Ensure the UI is clean, responsive, and easy to use on both desktop and mobile devices.
+\[x] Task FE-06: Ensure the UI is clean, responsive, and easy to use on both desktop and mobile devices.
 
 
 
