@@ -260,7 +260,7 @@ Goal: Package the application and provide clear instructions for deployment.
 
 
 
-\[ ] Task DEP-01: Create a Dockerfile to containerize the Flask backend for easy deployment.
+\[x] Task DEP-01: Create a Dockerfile to containerize the Flask backend for easy deployment.
 
 
 
