@@ -140,7 +140,7 @@ Status: Critical Path
 
 
 
-\[ ] Task FE-02: Write JavaScript to fetch configuration from /api/config.
+\[x] Task FE-02: Write JavaScript to fetch configuration from /api/config.
 
 
 

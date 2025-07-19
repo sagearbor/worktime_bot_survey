@@ -42,5 +42,19 @@
             </div>
         </form>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch("/api/config");
+                if (!response.ok) {
+                    throw new Error("Failed to load configuration");
+                }
+                window.dcriConfig = await response.json();
+                console.log("Configuration loaded", window.dcriConfig);
+            } catch (err) {
+                console.error("Error fetching configuration:", err);
+            }
+        });
+    </script>
 </body>
 </html>
