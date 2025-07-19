@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from datetime import datetime
 
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine, func
@@ -107,15 +108,38 @@ def create_app(config_object: dict | None = None) -> Flask:
         """Return aggregated submission counts by group and activity."""
         session = SessionLocal()
         try:
-            rows = (
-                session.query(
-                    models.ActivityLog.group_id,
-                    models.ActivityLog.activity,
-                    func.count(models.ActivityLog.id).label("count"),
-                )
-                .group_by(models.ActivityLog.group_id, models.ActivityLog.activity)
-                .all()
+            query = session.query(
+                models.ActivityLog.group_id,
+                models.ActivityLog.activity,
+                func.count(models.ActivityLog.id).label("count"),
             )
+
+            # Optional filters
+            group_id = request.args.get("group_id")
+            start_date = request.args.get("start_date")
+            end_date = request.args.get("end_date")
+
+            if group_id:
+                query = query.filter(models.ActivityLog.group_id == group_id)
+
+            if start_date:
+                try:
+                    start_dt = datetime.fromisoformat(start_date)
+                    query = query.filter(models.ActivityLog.timestamp >= start_dt)
+                except ValueError:
+                    return jsonify({"error": "Invalid start_date"}), 400
+
+            if end_date:
+                try:
+                    end_dt = datetime.fromisoformat(end_date)
+                    query = query.filter(models.ActivityLog.timestamp <= end_dt)
+                except ValueError:
+                    return jsonify({"error": "Invalid end_date"}), 400
+
+            rows = (
+                query.group_by(models.ActivityLog.group_id, models.ActivityLog.activity).all()
+            )
+
             results = [
                 {
                     "group_id": r.group_id,
