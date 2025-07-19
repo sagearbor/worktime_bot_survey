@@ -66,6 +66,23 @@
                 }
                 window.dcriConfig = await response.json();
                 console.log("Configuration loaded", window.dcriConfig);
+
+                const groupSelect = document.getElementById("group-select");
+                const activitySelect = document.getElementById("activity-select");
+
+                window.dcriConfig.groups.forEach((g) => {
+                    const opt = document.createElement("option");
+                    opt.value = g.id;
+                    opt.textContent = g.displayName;
+                    groupSelect.appendChild(opt);
+                });
+
+                window.dcriConfig.activities.forEach((a) => {
+                    const opt = document.createElement("option");
+                    opt.value = a.category;
+                    opt.textContent = a.category;
+                    activitySelect.appendChild(opt);
+                });
             } catch (err) {
                 console.error("Error fetching configuration:", err);
             }

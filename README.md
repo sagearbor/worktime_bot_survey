@@ -152,7 +152,7 @@ Status: Critical Path
 
 
 
-\[ ] Task FE-03: Implement logic to dynamically populate the "Group" and "Activity" dropdowns.
+\[x] Task FE-03: Implement logic to dynamically populate the "Group" and "Activity" dropdowns.
 
 
 
