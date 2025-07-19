@@ -218,7 +218,7 @@ Status: Critical Path
 
 
 
-\[ ] Task DB-02: Write JavaScript to fetch aggregated data from the /api/results endpoint.
+\[x] Task DB-02: Write JavaScript to fetch aggregated data from the /api/results endpoint.
 
 
 

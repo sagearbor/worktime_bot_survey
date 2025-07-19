@@ -14,7 +14,32 @@
         <h1 class="title">DCRI Activity Dashboard</h1>
         <div id="dashboard-content">
             <!-- Charts will be rendered here in future tasks -->
+            <p id="loading-message">Loading results...</p>
         </div>
     </div>
+    <script>
+        // Fetch aggregated results from the backend when the page loads
+        document.addEventListener("DOMContentLoaded", async () => {
+            const container = document.getElementById("dashboard-content");
+            try {
+                const response = await fetch("/api/results");
+                if (!response.ok) {
+                    throw new Error("Failed to load results");
+                }
+                // Store results globally for later chart rendering (DB-03)
+                window.dashboardData = await response.json();
+                console.log("Aggregated results", window.dashboardData);
+
+                // For now, simply show the raw JSON as a placeholder
+                container.innerHTML = `<pre>${JSON.stringify(window.dashboardData, null, 2)}</pre>`;
+            } catch (err) {
+                console.error("Error fetching results:", err);
+                container.textContent = "Error loading results.";
+            } finally {
+                const loadingMsg = document.getElementById("loading-message");
+                if (loadingMsg) loadingMsg.remove();
+            }
+        });
+    </script>
 </body>
 </html>
