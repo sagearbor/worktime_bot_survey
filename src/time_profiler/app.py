@@ -80,10 +80,15 @@ def create_app(config_object: dict | None = None) -> Flask:
 
         session = SessionLocal()
         try:
+            feedback_text = None
+            if config.get("enableFreeTextFeedback"):
+                feedback_text = data.get("feedback")
+
             log_entry = models.ActivityLog(
                 group_id=data["group_id"],
                 activity=data["activity"],
                 sub_activity=data["sub_activity"],
+                feedback=feedback_text,
             )
             session.add(log_entry)
             session.commit()
