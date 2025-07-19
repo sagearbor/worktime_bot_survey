@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
 
@@ -52,6 +52,47 @@ def create_app(config_object: dict | None = None) -> Flask:
         """Return configuration data loaded from the JSON file."""
         config_data = load_config(Path(app.config["DCRI_CONFIG_PATH"]))
         return jsonify(config_data)
+
+    @app.route("/api/submit", methods=["POST"])
+    def submit_activity() -> jsonify:
+        """Receive and validate an activity log submission."""
+        data = request.get_json(silent=True) or {}
+
+        required = ["group_id", "activity", "sub_activity"]
+        if not all(data.get(f) for f in required):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        config = load_config(Path(app.config["DCRI_CONFIG_PATH"]))
+        valid_groups = {g["id"] for g in config.get("groups", [])}
+        if data["group_id"] not in valid_groups:
+            return jsonify({"error": "Invalid group_id"}), 400
+
+        activity_map = {
+            a["category"]: set(a.get("sub_activities", []))
+            for a in config.get("activities", [])
+        }
+        if data["activity"] not in activity_map:
+            return jsonify({"error": "Invalid activity"}), 400
+
+        sub_acts = activity_map[data["activity"]]
+        if sub_acts and data["sub_activity"] not in sub_acts:
+            return jsonify({"error": "Invalid sub_activity"}), 400
+
+        session = SessionLocal()
+        try:
+            log_entry = models.ActivityLog(
+                group_id=data["group_id"],
+                activity=data["activity"],
+                sub_activity=data["sub_activity"],
+            )
+            session.add(log_entry)
+            session.commit()
+            return jsonify({"status": "success", "id": log_entry.id})
+        except Exception:  # pragma: no cover - unexpected DB errors
+            session.rollback()
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
 
     @app.route("/health")
     def health() -> dict:
