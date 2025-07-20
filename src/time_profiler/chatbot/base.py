@@ -222,21 +222,21 @@ class BaseChatbotService:
                 message_type="problem_report",
             )
 
-        session = SessionLocal()
+        # Use ProblemAggregator to cluster similar issues and track frequency
+        from ..ai_insights import ProblemAggregator
+
+        aggregator = ProblemAggregator()
+
         try:
-            problem = ProblemIdentification(description=message.text)
-            session.add(problem)
-            session.commit()
+            problem = aggregator.record_problem(message.text)
             response = ChatResponse(
                 "Thanks, I've logged this problem for review.",
                 message_type="problem_report",
             )
         except Exception as e:
-            session.rollback()
             print(f"Error storing problem report: {e}")
             response = ChatResponse("There was an error recording the problem.")
         finally:
-            session.close()
             state.reset()
 
         return response

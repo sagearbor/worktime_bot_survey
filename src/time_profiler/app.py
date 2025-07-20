@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime
 
 from flask import Flask, jsonify, request, render_template
+import asyncio
 from flask_cors import CORS
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
@@ -54,6 +55,14 @@ def create_app(config_object: dict | None = None) -> Flask:
         app.config.update(config_object)
 
     init_db(app.config["DATABASE_URL"])
+
+    # Initialize chatbot service with platform adapters
+    from .chatbot.base import BaseChatbotService
+    from .chatbot.adapters import TeamsAdapter, WebChatAdapter
+
+    chatbot_service = BaseChatbotService()
+    chatbot_service.register_adapter("teams", TeamsAdapter())
+    chatbot_service.register_adapter("web", WebChatAdapter())
 
     @app.route("/api/config", methods=["GET"])
     def get_config() -> jsonify:
@@ -313,6 +322,13 @@ def create_app(config_object: dict | None = None) -> Flask:
             return jsonify({"error": "Server error"}), 500
         finally:
             session.close()
+
+    @app.route("/api/teams/messages", methods=["POST"])
+    def teams_messages() -> jsonify:
+        """Endpoint for Microsoft Teams bot messages."""
+        raw = request.get_json(silent=True) or {}
+        response = asyncio.run(chatbot_service.process_message("teams", raw))
+        return jsonify({"text": response.text})
 
     @app.route("/api/problems", methods=["GET"])
     def get_problems() -> jsonify:
