@@ -288,6 +288,11 @@ def create_app(config_object: dict | None = None) -> Flask:
         """Serve the dashboard page."""
         return render_template("dashboard.html")
 
+    @app.route("/admin")
+    def admin_page():
+        """Serve the admin problem management page."""
+        return render_template("admin.html")
+
     @app.route("/api/chatbot-feedback", methods=["POST"])
     def submit_chatbot_feedback() -> jsonify:
         """Process chatbot message and return response."""
@@ -402,6 +407,32 @@ def create_app(config_object: dict | None = None) -> Flask:
         finally:
             session.close()
 
+    @app.route("/api/problems/<int:problem_id>", methods=["PATCH"])
+    def update_problem(problem_id: int) -> jsonify:
+        """Update problem fields such as status or category."""
+        data = request.get_json(silent=True) or {}
+        session = SessionLocal()
+        try:
+            problem = session.query(models.ProblemIdentification).filter_by(id=problem_id).first()
+            if not problem:
+                return jsonify({"error": "Problem not found"}), 404
+
+            if "status" in data:
+                problem.status = data["status"]
+            if "category" in data:
+                problem.category = data["category"]
+            if "description" in data:
+                problem.description = data["description"]
+
+            session.commit()
+            return jsonify({"status": "success"})
+        except Exception as e:  # pragma: no cover
+            session.rollback()
+            print(f"Error updating problem: {e}")
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
     @app.route("/api/solutions", methods=["GET"])
     def get_solutions() -> jsonify:
         """Return solution suggestions with optional filters."""
@@ -479,6 +510,32 @@ def create_app(config_object: dict | None = None) -> Flask:
         except Exception as e:
             session.rollback()
             print(f"Error creating solution: {e}")
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
+    @app.route("/api/solutions/<int:solution_id>", methods=["PATCH"])
+    def update_solution(solution_id: int) -> jsonify:
+        """Update solution information such as status or savings."""
+        data = request.get_json(silent=True) or {}
+        session = SessionLocal()
+        try:
+            solution = session.query(models.SolutionSuggestion).filter_by(id=solution_id).first()
+            if not solution:
+                return jsonify({"error": "Solution not found"}), 404
+
+            if "status" in data:
+                solution.status = data["status"]
+            if "actual_savings" in data:
+                solution.actual_savings = data["actual_savings"]
+            if "roi_score" in data:
+                solution.roi_score = data["roi_score"]
+
+            session.commit()
+            return jsonify({"status": "success"})
+        except Exception as e:  # pragma: no cover
+            session.rollback()
+            print(f"Error updating solution: {e}")
             return jsonify({"error": "Server error"}), 500
         finally:
             session.close()
@@ -592,6 +649,85 @@ def create_app(config_object: dict | None = None) -> Flask:
             })
         except Exception as e:
             print(f"Error retrieving insights: {e}")
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
+    @app.route("/api/jira-tickets", methods=["GET"])
+    def get_jira_tickets() -> jsonify:
+        """Return Jira ticket lifecycle records."""
+        session = SessionLocal()
+        try:
+            tickets = session.query(models.JiraTicketLifecycle).all()
+            results = []
+            for t in tickets:
+                results.append({
+                    "id": t.id,
+                    "ticket_key": t.ticket_key,
+                    "status": t.status,
+                    "priority": t.priority,
+                    "problem_id": t.problem_id,
+                    "solution_id": t.solution_id,
+                })
+            return jsonify(results)
+        except Exception as e:  # pragma: no cover
+            print(f"Error retrieving Jira tickets: {e}")
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
+    @app.route("/api/jira-tickets/<int:ticket_id>", methods=["PATCH"])
+    def update_jira_ticket(ticket_id: int) -> jsonify:
+        """Update Jira ticket status or priority."""
+        data = request.get_json(silent=True) or {}
+        session = SessionLocal()
+        try:
+            ticket = session.query(models.JiraTicketLifecycle).filter_by(id=ticket_id).first()
+            if not ticket:
+                return jsonify({"error": "Ticket not found"}), 404
+
+            if "status" in data:
+                ticket.status = data["status"]
+            if "priority" in data:
+                ticket.priority = data["priority"]
+            if data.get("escalate"):
+                ticket.escalation_count += 1
+            ticket.last_updated = datetime.utcnow()
+
+            session.commit()
+            return jsonify({"status": "success"})
+        except Exception as e:  # pragma: no cover
+            session.rollback()
+            print(f"Error updating Jira ticket: {e}")
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
+    @app.route("/api/admin/archive", methods=["POST"])
+    def archive_data() -> jsonify:
+        """Archive processed feedback and resolved problems."""
+        days = request.args.get("days", default=30, type=int)
+        cutoff = datetime.utcnow() - timedelta(days=days)
+        session = SessionLocal()
+        try:
+            fb_q = session.query(models.ChatbotFeedback).filter(
+                models.ChatbotFeedback.processed == True,
+                models.ChatbotFeedback.archived == False,
+                models.ChatbotFeedback.timestamp < cutoff,
+            )
+            fb_count = fb_q.update({models.ChatbotFeedback.archived: True}, synchronize_session=False)
+
+            prob_q = session.query(models.ProblemIdentification).filter(
+                models.ProblemIdentification.status == "resolved",
+                models.ProblemIdentification.last_reported < cutoff,
+            )
+            prob_count = prob_q.update({models.ProblemIdentification.status: "archived"}, synchronize_session=False)
+
+            session.commit()
+            return jsonify({"status": "success", "feedback_archived": fb_count, "problems_archived": prob_count})
+        except Exception as e:  # pragma: no cover
+            session.rollback()
+            print(f"Error archiving data: {e}")
             return jsonify({"error": "Server error"}), 500
         finally:
             session.close()

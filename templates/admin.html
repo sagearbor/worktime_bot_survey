@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem Management Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body class="p-4">
+    <h1 class="title">Problem Management</h1>
+    <div id="problem-list"></div>
+    <button id="archive-btn" class="button is-danger is-small mt-4">Archive Old Data</button>
+
+    <script>
+    async function loadProblems() {
+        const res = await fetch('/api/problems');
+        const problems = await res.json();
+        const container = document.getElementById('problem-list');
+        container.innerHTML = '';
+        const table = document.createElement('table');
+        table.className = 'table is-fullwidth';
+        table.innerHTML = '<thead><tr><th>ID</th><th>Description</th><th>Status</th><th></th></tr></thead>';
+        const tbody = document.createElement('tbody');
+        problems.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${p.id}</td><td>${p.description}</td>`;
+            const statusTd = document.createElement('td');
+            const select = document.createElement('select');
+            ['identified','approved','in_progress','resolved','rejected'].forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                if (p.status === s) opt.selected = true;
+                select.appendChild(opt);
+            });
+            statusTd.appendChild(select);
+            tr.appendChild(statusTd);
+            const actionTd = document.createElement('td');
+            const btn = document.createElement('button');
+            btn.className = 'button is-small';
+            btn.textContent = 'Save';
+            btn.addEventListener('click', async () => {
+                await fetch(`/api/problems/${p.id}`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: select.value})
+                });
+            });
+            actionTd.appendChild(btn);
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
+    document.getElementById('archive-btn').addEventListener('click', async () => {
+        await fetch('/api/admin/archive', {method: 'POST'});
+        alert('Archive completed');
+        loadProblems();
+    });
+
+    loadProblems();
+    </script>
+</body>
+</html>
+
