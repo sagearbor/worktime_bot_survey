@@ -25,6 +25,7 @@ dependencies = [
     "alembic>=1.13.0",        # For database schema migrations
     "python-dotenv>=1.0.0",   # For managing environment variables
     "psycopg2-binary>=2.9.9", # PostgreSQL adapter, can be swapped for other DBs
+    "requests>=2.31.0",       # HTTP client for integrations
 ]
 
 # Dependencies for development and testing
