@@ -9,6 +9,7 @@ from .jira_integration import (
     archive_and_create_new_ticket,
     update_solution_impact,
 )
+from .sentiment import analyze_sentiment
 
 __all__ = [
     "ProblemAggregator",
@@ -18,4 +19,5 @@ __all__ = [
     "escalate_ticket",
     "archive_and_create_new_ticket",
     "update_solution_impact",
+    "analyze_sentiment",
 ]

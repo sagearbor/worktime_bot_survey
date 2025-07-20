@@ -58,6 +58,12 @@
         <div id="dashboard-content">
             <p id="loading-message">Loading results...</p>
         </div>
+        <div id="insights-section" class="mt-6">
+            <h2 class="title is-4">AI Insights</h2>
+            <div id="insights-content">
+                <p>Loading insights...</p>
+            </div>
+        </div>
     </div>
     <script>
         // Fetch aggregated results with optional filters and render charts
@@ -217,8 +223,94 @@
                 }
             }
 
+            async function fetchInsights() {
+                const res = await fetch('/api/insights');
+                if (!res.ok) throw new Error('Failed to load insights');
+                return res.json();
+            }
+
+            function renderInsights(data) {
+                const target = document.getElementById('insights-content');
+                target.innerHTML = '';
+
+                // Trending problems chart
+                if (data.trending_problems && data.trending_problems.length > 0) {
+                    const trendTitle = document.createElement('h3');
+                    trendTitle.className = 'subtitle mt-4';
+                    trendTitle.textContent = 'Trending Problems';
+                    target.appendChild(trendTitle);
+
+                    const canvas = document.createElement('canvas');
+                    target.appendChild(canvas);
+                    new Chart(canvas.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: data.trending_problems.map(p => p.description),
+                            datasets: [{
+                                label: 'Reports',
+                                data: data.trending_problems.map(p => p.frequency),
+                                backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                            }]
+                        },
+                        options: { plugins: { legend: { display: false } }, responsive: true }
+                    });
+                }
+
+                // Solution pipeline chart
+                if (data.solution_stats && data.solution_stats.pipeline) {
+                    const pipelineTitle = document.createElement('h3');
+                    pipelineTitle.className = 'subtitle mt-5';
+                    pipelineTitle.textContent = 'Solution Pipeline';
+                    target.appendChild(pipelineTitle);
+
+                    const canvas2 = document.createElement('canvas');
+                    target.appendChild(canvas2);
+                    const labels = Object.keys(data.solution_stats.pipeline);
+                    const values = Object.values(data.solution_stats.pipeline);
+                    new Chart(canvas2.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Count',
+                                data: values,
+                                backgroundColor: 'rgba(153, 102, 255, 0.7)'
+                            }]
+                        },
+                        options: { plugins: { legend: { display: false } }, responsive: true }
+                    });
+                }
+
+                // Champion list
+                if (data.champions && data.champions.length > 0) {
+                    const champTitle = document.createElement('h3');
+                    champTitle.className = 'subtitle mt-5';
+                    champTitle.textContent = 'Top Champions';
+                    target.appendChild(champTitle);
+
+                    const list = document.createElement('ul');
+                    data.champions.forEach(ch => {
+                        const li = document.createElement('li');
+                        li.textContent = `${ch.user_id} (${ch.count})`;
+                        list.appendChild(li);
+                    });
+                    target.appendChild(list);
+                }
+
+                // ROI and sentiment
+                const stats = document.createElement('p');
+                stats.className = 'mt-4';
+                stats.textContent = `Total Savings: ${data.roi.total_savings || 0}, Average ROI: ${data.roi.average_roi.toFixed ? data.roi.average_roi.toFixed(2) : data.roi.average_roi}. Sentiment: ${data.feedback_stats.sentiment.toFixed ? data.feedback_stats.sentiment.toFixed(2) : data.feedback_stats.sentiment}`;
+                target.appendChild(stats);
+            }
+
             await loadConfig();
             await updateDashboard();
+            const insightsData = await fetchInsights().catch(err => {
+                console.error('Error fetching insights:', err);
+                return null;
+            });
+            if (insightsData) renderInsights(insightsData);
 
             applyBtn.addEventListener("click", (e) => {
                 e.preventDefault();

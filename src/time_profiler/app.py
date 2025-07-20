@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Flask, jsonify, request, render_template
 import asyncio
@@ -492,42 +492,103 @@ def create_app(config_object: dict | None = None) -> Flask:
             total_problems = session.query(models.ProblemIdentification).count()
             active_problems = session.query(models.ProblemIdentification).filter_by(status="identified").count()
             resolved_problems = session.query(models.ProblemIdentification).filter_by(status="resolved").count()
-            
+
             # Get solution statistics
             total_solutions = session.query(models.SolutionSuggestion).count()
             implemented_solutions = session.query(models.SolutionSuggestion).filter_by(status="implemented").count()
-            
+
+            # Solution pipeline counts
+            pipeline_counts = dict(
+                session.query(models.SolutionSuggestion.status, func.count(models.SolutionSuggestion.id))
+                .group_by(models.SolutionSuggestion.status)
+                .all()
+            )
+
             # Get recent feedback count
             recent_feedback = session.query(models.ChatbotFeedback).filter(
                 models.ChatbotFeedback.processed == False
             ).count()
-            
+
             # Get top problems by frequency
             top_problems = session.query(models.ProblemIdentification).order_by(
                 models.ProblemIdentification.frequency_count.desc()
             ).limit(5).all()
-            
+
+            # Trending problems (last 7 days, min 2 reports)
+            from .ai_insights import ProblemAggregator, analyze_sentiment
+
+            aggregator = ProblemAggregator()
+            trending = aggregator.trending_problems(within_days=7, min_reports=2)
+
+            # Champion counts from success stories
+            champion_rows = (
+                session.query(models.ChatbotFeedback.user_id, func.count(models.ChatbotFeedback.id))
+                .filter(models.ChatbotFeedback.message_type == "success_story")
+                .group_by(models.ChatbotFeedback.user_id)
+                .order_by(func.count(models.ChatbotFeedback.id).desc())
+                .limit(5)
+                .all()
+            )
+            champions = [
+                {"user_id": uid, "count": cnt}
+                for uid, cnt in champion_rows
+            ]
+
+            # ROI statistics for implemented solutions
+            implemented = session.query(models.SolutionSuggestion).filter_by(status="implemented").all()
+            total_savings = sum(s.actual_savings or 0 for s in implemented)
+            avg_roi = 0.0
+            if implemented:
+                roi_values = [s.roi_score for s in implemented if s.roi_score is not None]
+                if roi_values:
+                    avg_roi = sum(roi_values) / len(roi_values)
+
+            # Sentiment analysis for recent feedback (7 days)
+            cutoff = datetime.utcnow() - timedelta(days=7)
+            recent_messages = (
+                session.query(models.ChatbotFeedback.message_text)
+                .filter(models.ChatbotFeedback.timestamp >= cutoff)
+                .all()
+            )
+            sentiments = [analyze_sentiment(m[0]) for m in recent_messages]
+            avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0.0
+
             return jsonify({
                 "problem_stats": {
                     "total": total_problems,
                     "active": active_problems,
-                    "resolved": resolved_problems
+                    "resolved": resolved_problems,
                 },
                 "solution_stats": {
                     "total": total_solutions,
-                    "implemented": implemented_solutions
+                    "implemented": implemented_solutions,
+                    "pipeline": pipeline_counts,
                 },
                 "feedback_stats": {
-                    "unprocessed": recent_feedback
+                    "unprocessed": recent_feedback,
+                    "sentiment": avg_sentiment,
                 },
                 "top_problems": [
                     {
                         "id": p.id,
                         "description": p.description[:100] + "..." if len(p.description) > 100 else p.description,
-                        "frequency": p.frequency_count
+                        "frequency": p.frequency_count,
                     }
                     for p in top_problems
-                ]
+                ],
+                "trending_problems": [
+                    {
+                        "id": pid,
+                        "description": desc,
+                        "frequency": freq,
+                    }
+                    for pid, desc, freq in trending
+                ],
+                "champions": champions,
+                "roi": {
+                    "total_savings": total_savings,
+                    "average_roi": avg_roi,
+                },
             })
         except Exception as e:
             print(f"Error retrieving insights: {e}")
