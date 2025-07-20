@@ -115,6 +115,7 @@ class SolutionSuggestion(Base):
     description = Column(Text, nullable=False)
     estimated_effort = Column(String, nullable=True)  # "Low", "Medium", "High" or story points
     estimated_savings = Column(Float, nullable=True)  # Hours saved per week/month
+    actual_savings = Column(Float, nullable=True)  # Real hours saved after implementation
     roi_score = Column(Float, nullable=True)  # Calculated ROI (savings/effort)
     status = Column(String, nullable=False, default="suggested")  # "suggested", "approved", "in_progress", "implemented", "rejected"
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -125,7 +126,8 @@ class SolutionSuggestion(Base):
     def __repr__(self) -> str:
         return (
             f"<SolutionSuggestion id={self.id} problem_id={self.problem_id} "
-            f"effort={self.estimated_effort} status={self.status}>"
+            f"effort={self.estimated_effort} status={self.status} "
+            f"actual={self.actual_savings}>"
         )
 
 
