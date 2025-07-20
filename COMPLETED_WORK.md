@@ -70,6 +70,7 @@
 - [x] **CB-05**: Teams integration with manifest and message endpoint
 - [x] **CB-06**: Problem aggregation engine with trending issue detection
 - [x] **CB-12**: Data migration utilities for new schema compatibility
+- [x] **CB-08**: AI solution suggestion engine with ROI scoring
 
 ---
 
