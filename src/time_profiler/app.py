@@ -519,4 +519,30 @@ def create_app(config_object: dict | None = None) -> Flask:
         finally:
             session.close()
 
+    @app.route("/api/jira-webhook", methods=["POST"])
+    def jira_webhook() -> jsonify:
+        """Receive Jira status updates via webhook."""
+        data = request.get_json(silent=True) or {}
+
+        ticket_key = data.get("ticket_key")
+        status = data.get("status")
+        if not ticket_key or not status:
+            return jsonify({"error": "Missing required fields: ticket_key, status"}), 400
+
+        session = SessionLocal()
+        try:
+            ticket = session.query(models.JiraTicketLifecycle).filter_by(ticket_key=ticket_key).first()
+            if not ticket:
+                return jsonify({"error": "Ticket not found"}), 404
+            ticket.status = status
+            ticket.last_updated = datetime.utcnow()
+            session.commit()
+            return jsonify({"status": "success"})
+        except Exception as e:  # pragma: no cover
+            session.rollback()
+            print(f"Error updating Jira ticket: {e}")
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
     return app

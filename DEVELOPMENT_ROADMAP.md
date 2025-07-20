@@ -44,15 +44,16 @@
 - [✅] CB-03c: Create base chatbot service with unified API interface
 - [✅] CB-03d: Implement conversation state management
 
-### [ ] Task CB-04: Conversation Flows & NLP
-**Priority**: Critical Path  
+### [✅] Task CB-04: Conversation Flows & NLP
+**Priority**: Critical Path
 **Dependencies**: CB-03
+**Status**: COMPLETED (2025-07-21)
 
-- [ ] CB-04a: Design conversation flows for time allocation ("I spent 60% on X, 30% on Y")  
-- [ ] CB-04b: Design flows for problem reporting ("What's frustrating you today?")
-- [ ] CB-04c: Design flows for success sharing ("What went well?")
-- [ ] CB-04d: Implement NLP pipeline (keyword extraction, sentiment, activity mapping)
-- [ ] CB-04e: Map natural language to existing `dcri_config.json` categories
+- [✅] CB-04a: Design conversation flows for time allocation ("I spent 60% on X, 30% on Y")
+- [✅] CB-04b: Design flows for problem reporting ("What's frustrating you today?")
+- [✅] CB-04c: Design flows for success sharing ("What went well?")
+- [✅] CB-04d: Implement NLP pipeline (keyword extraction, sentiment, activity mapping)
+- [✅] CB-04e: Map natural language to existing `dcri_config.json` categories
 
 ### [ ] Task CB-05: Teams Integration
 **Priority**: High  
@@ -131,7 +132,7 @@
 - [✅] CB-11b: `/api/problems` endpoint for identified issues  
 - [✅] CB-11c: `/api/solutions` endpoint for tracking implementations
 - [✅] CB-11d: `/api/insights` endpoint for dashboard data
-- [⏳] CB-11e: Webhook endpoints for Jira status updates - *Future enhancement*
+- [✅] CB-11e: Webhook endpoints for Jira status updates
 
 ### [ ] Task CB-12: Data Migration & Compatibility
 **Priority**: Critical Path  
