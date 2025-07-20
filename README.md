@@ -328,11 +328,15 @@ Status: Critical Path
    ```bash
    alembic upgrade head
    ```
-5. Load mock data (optional, for testing):
+5. Create database tables:
    ```bash
-   python -m src.time_profiler.seed_mock_data
+   python create_tables.py
    ```
-6. Start the application:
+6. Load mock data (optional, for testing):
+   ```bash
+   python -m src.time_profiler.seed_allocation_data
+   ```
+7. Start the application:
    ```bash
    python -m src.time_profiler.main
    ```
@@ -343,9 +347,12 @@ Status: Critical Path
    ```
 
 The application will be available at:
-- Survey form: `http://localhost:8000/`
-- Dashboard: `http://localhost:8000/dashboard`
-- API endpoints: `http://localhost:8000/api/config`, `http://localhost:8000/api/results`
+- **Time Allocation Survey**: `http://localhost:8000/` - Complete time allocation form (percentages must sum to 100%)
+- **Dashboard**: `http://localhost:8000/dashboard` - View aggregated time allocation data with filtering
+- **API endpoints**: 
+  - `http://localhost:8000/api/config` - Configuration data
+  - `http://localhost:8000/api/results` - Aggregated time allocation results
+  - `http://localhost:8000/api/submit-allocation` - Submit time allocation data
 
 **Note:** Remember to activate your virtual environment each time you work on the project in a new terminal session:
 - Git Bash: `source venv/Scripts/activate`

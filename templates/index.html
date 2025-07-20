@@ -3,170 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCRI Activity Logging</title>
+    <title>DCRI Time Allocation Survey</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <style>
         body {
             padding: 2rem;
         }
-        /* Center the form and limit width for large screens */
         .form-container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
+        }
+        .percentage-input {
+            width: 80px;
+        }
+        .total-display {
+            font-weight: bold;
+            color: #363636;
+        }
+        .total-warning {
+            color: #ff3860;
+        }
+        .total-valid {
+            color: #00d1b2;
+        }
+        .activity-row {
+            align-items: center;
+            padding: 0.5rem 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="columns is-centered">
-            <div class="column is-full-mobile is-half-tablet is-one-third-desktop form-container">
-                <h1 class="title has-text-centered">DCRI Activity Logging</h1>
-                <form id="activity-form">
-                    <div class="field">
-                        <label class="label" for="group-select">Group</label>
-                        <div class="control">
-                            <div class="select is-fullwidth">
-                                <select id="group-select">
-                                    <option value="">Select group...</option>
-                                </select>
+            <div class="column form-container">
+                <h1 class="title has-text-centered">DCRI Time Allocation Survey</h1>
+                <p class="subtitle has-text-centered">Please allocate your work time across activities (should total 100%)</p>
+                
+                <form id="time-allocation-form">
+                    <!-- Department Selection -->
+                    <div class="box">
+                        <div class="field">
+                            <label class="label" for="group-select">Department/Group</label>
+                            <div class="control">
+                                <div class="select is-fullwidth">
+                                    <select id="group-select" required>
+                                        <option value="">Select your department...</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="field">
-                        <label class="label" for="activity-select">Activity</label>
-                        <div class="control">
-                            <div class="select is-fullwidth">
-                                <select id="activity-select">
-                                    <option value="">Select activity...</option>
-                                </select>
+
+                    <!-- Time Allocation -->
+                    <div class="box">
+                        <h3 class="title is-5">Time Allocation by Activity</h3>
+                        <div id="activities-container">
+                            <!-- Activities will be populated here -->
+                        </div>
+                        
+                        <!-- Total Display -->
+                        <div class="field">
+                            <div class="level">
+                                <div class="level-left">
+                                    <div class="level-item">
+                                        <span class="total-display">Total: <span id="total-percentage">0</span>%</span>
+                                    </div>
+                                </div>
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <span id="total-status" class="total-warning">Must equal 100%</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="field">
-                        <label class="label" for="sub-activity-select">Sub-Activity</label>
-                        <div class="control">
-                            <div class="select is-fullwidth">
-                                <select id="sub-activity-select" disabled>
-                                    <option value="">Select sub-activity...</option>
-                                </select>
+
+                    <!-- Optional Feedback -->
+                    <div class="box" id="feedback-box" style="display: none;">
+                        <div class="field">
+                            <label class="label" for="feedback">Additional Comments</label>
+                            <div class="control">
+                                <textarea id="feedback" class="textarea" placeholder="Optional feedback about your time allocation..."></textarea>
                             </div>
                         </div>
                     </div>
-                    <div class="field">
-                        <label class="label" for="percent-work">% of Work Time</label>
-                        <div class="control">
-                            <input id="percent-work" class="input" type="number" min="0" max="100" step="0.1" placeholder="e.g., 25.5">
-                        </div>
-                        <p class="help">What percentage of your work time was spent on this activity? (Optional)</p>
-                    </div>
-                    <div class="field" id="feedback-field" style="display: none;">
-                        <label class="label" for="feedback">Additional Feedback</label>
-                        <div class="control">
-                            <textarea id="feedback" class="textarea" placeholder="Optional"></textarea>
-                        </div>
-                    </div>
+
+                    <!-- Submit -->
                     <div class="field">
                         <div class="control">
-                            <button class="button is-primary is-fullwidth" type="submit">Submit</button>
+                            <button class="button is-primary is-fullwidth is-large" type="submit" id="submit-btn" disabled>
+                                Submit Time Allocation
+                            </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
+            let config = {};
+            
             try {
                 const response = await fetch("/api/config");
                 if (!response.ok) {
                     throw new Error("Failed to load configuration");
                 }
-                window.dcriConfig = await response.json();
-                console.log("Configuration loaded", window.dcriConfig);
+                config = await response.json();
+                console.log("Configuration loaded", config);
 
+                // Populate departments (sorted alphabetically)
                 const groupSelect = document.getElementById("group-select");
-                const activitySelect = document.getElementById("activity-select");
-                const subSelect = document.getElementById("sub-activity-select");
-
-                window.dcriConfig.groups.forEach((g) => {
+                const sortedGroups = [...config.groups].sort((a, b) => 
+                    a.displayName.localeCompare(b.displayName)
+                );
+                sortedGroups.forEach((g) => {
                     const opt = document.createElement("option");
                     opt.value = g.id;
                     opt.textContent = g.displayName;
                     groupSelect.appendChild(opt);
                 });
 
-                window.dcriConfig.activities.forEach((a) => {
-                    const opt = document.createElement("option");
-                    opt.value = a.category;
-                    opt.textContent = a.category;
-                    activitySelect.appendChild(opt);
+                // Create activity inputs
+                const activitiesContainer = document.getElementById("activities-container");
+                config.activities.forEach((activity, index) => {
+                    const activityDiv = document.createElement("div");
+                    activityDiv.className = "field";
+                    
+                    const label = document.createElement("label");
+                    label.className = "label";
+                    label.textContent = activity.category;
+                    
+                    const control = document.createElement("div");
+                    control.className = "control";
+                    
+                    const inputGroup = document.createElement("div");
+                    inputGroup.className = "field has-addons";
+                    
+                    const inputControl = document.createElement("div");
+                    inputControl.className = "control";
+                    
+                    const input = document.createElement("input");
+                    input.className = "input percentage-input";
+                    input.type = "number";
+                    input.min = "0";
+                    input.max = "100";
+                    input.step = "0.1";
+                    input.id = `activity-${index}`;
+                    input.dataset.activity = activity.category;
+                    input.placeholder = "0.0";
+                    
+                    const percentControl = document.createElement("div");
+                    percentControl.className = "control";
+                    
+                    const percentAddon = document.createElement("span");
+                    percentAddon.className = "button is-static";
+                    percentAddon.textContent = "%";
+                    
+                    inputControl.appendChild(input);
+                    percentControl.appendChild(percentAddon);
+                    inputGroup.appendChild(inputControl);
+                    inputGroup.appendChild(percentControl);
+                    
+                    // Add sub-activities as help text
+                    let helpText = "";
+                    if (activity.sub_activities && activity.sub_activities.length > 0) {
+                        helpText = "Includes: " + activity.sub_activities.join(", ");
+                    }
+                    
+                    const help = document.createElement("p");
+                    help.className = "help";
+                    help.textContent = helpText;
+                    
+                    activityDiv.appendChild(label);
+                    activityDiv.appendChild(inputGroup);
+                    if (helpText) {
+                        activityDiv.appendChild(help);
+                    }
+                    
+                    activitiesContainer.appendChild(activityDiv);
                 });
 
-                // Populate sub-activities when an activity is chosen
-                function populateSubActivities() {
-                    subSelect.innerHTML = '<option value="">Select sub-activity...</option>';
-                    const selected = window.dcriConfig.activities.find(
-                        (a) => a.category === activitySelect.value
-                    );
-                    if (selected && selected.sub_activities.length) {
-                        selected.sub_activities.forEach((sa) => {
-                            const opt = document.createElement("option");
-                            opt.value = sa;
-                            opt.textContent = sa;
-                            subSelect.appendChild(opt);
-                        });
-                        subSelect.disabled = false;
+                // Show feedback if enabled
+                if (config.enableFreeTextFeedback) {
+                    document.getElementById("feedback-box").style.display = "block";
+                }
+
+                // Add percentage validation
+                function updateTotal() {
+                    const inputs = document.querySelectorAll('input[data-activity]');
+                    let total = 0;
+                    
+                    inputs.forEach(input => {
+                        const value = parseFloat(input.value) || 0;
+                        total += value;
+                    });
+                    
+                    const totalSpan = document.getElementById("total-percentage");
+                    const statusSpan = document.getElementById("total-status");
+                    const submitBtn = document.getElementById("submit-btn");
+                    const groupSelect = document.getElementById("group-select");
+                    
+                    totalSpan.textContent = total.toFixed(1);
+                    
+                    if (Math.abs(total - 100) < 0.1 && groupSelect.value) {
+                        statusSpan.textContent = "✓ Ready to submit";
+                        statusSpan.className = "total-valid";
+                        submitBtn.disabled = false;
                     } else {
-                        subSelect.disabled = true;
+                        if (total > 100) {
+                            statusSpan.textContent = "⚠ Over 100%";
+                        } else if (total < 100) {
+                            statusSpan.textContent = "⚠ Under 100%";
+                        } else {
+                            statusSpan.textContent = "⚠ Select department";
+                        }
+                        statusSpan.className = "total-warning";
+                        submitBtn.disabled = true;
                     }
                 }
 
-                activitySelect.addEventListener("change", populateSubActivities);
-                populateSubActivities();
+                // Add event listeners
+                document.querySelectorAll('input[data-activity]').forEach(input => {
+                    input.addEventListener('input', updateTotal);
+                });
+                
+                document.getElementById("group-select").addEventListener('change', updateTotal);
 
-                const feedbackField = document.getElementById("feedback-field");
-                if (window.dcriConfig.enableFreeTextFeedback) {
-                    feedbackField.style.display = "block";
-                } else {
-                    feedbackField.remove();
-                }              
-              
-                const form = document.getElementById("activity-form");
-                form.addEventListener("submit", async (e) => {
+                // Handle form submission
+                document.getElementById("time-allocation-form").addEventListener("submit", async (e) => {
                     e.preventDefault();
+                    
+                    const groupId = groupSelect.value;
+                    const feedback = document.getElementById("feedback").value;
+                    const activities = {};
+                    
+                    // Collect all activity percentages
+                    document.querySelectorAll('input[data-activity]').forEach(input => {
+                        const percentage = parseFloat(input.value) || 0;
+                        if (percentage > 0) {
+                            activities[input.dataset.activity] = percentage;
+                        }
+                    });
+                    
                     const payload = {
-                        group_id: groupSelect.value,
-                        activity: activitySelect.value,
-                        sub_activity: subSelect.value,
+                        group_id: groupId,
+                        activities: activities,
+                        feedback: feedback || null
                     };
                     
-                    // Add percent_work if provided
-                    const percentWork = document.getElementById("percent-work").value;
-                    if (percentWork) {
-                        payload.percent_work = parseFloat(percentWork);
-                    }
-                    
-                    if (window.dcriConfig.enableFreeTextFeedback) {
-                        payload.feedback = document.getElementById("feedback").value;
-                    }
                     try {
-                        const res = await fetch("/api/submit", {
+                        const submitBtn = document.getElementById("submit-btn");
+                        submitBtn.classList.add("is-loading");
+                        
+                        const res = await fetch("/api/submit-allocation", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify(payload),
                         });
-                        if (!res.ok) throw new Error("Failed to submit");
-                        form.reset();
-                        populateSubActivities();
-                        alert("Submission successful");
+                        
+                        if (!res.ok) {
+                            const error = await res.json();
+                            throw new Error(error.error || "Failed to submit");
+                        }
+                        
+                        // Success
+                        alert("Time allocation submitted successfully!");
+                        
+                        // Reset form
+                        document.getElementById("time-allocation-form").reset();
+                        updateTotal();
+                        
                     } catch (err) {
                         console.error("Error submitting form:", err);
-                        alert("Submission failed");
+                        alert("Submission failed: " + err.message);
+                    } finally {
+                        submitBtn.classList.remove("is-loading");
                     }
                 });
 
             } catch (err) {
-                console.error("Error fetching configuration:", err);
+                console.error("Error loading configuration:", err);
+                alert("Failed to load form configuration. Please refresh the page.");
             }
         });
     </script>

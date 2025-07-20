@@ -110,14 +110,11 @@ def create_app(config_object: dict | None = None) -> Flask:
 
     @app.route("/api/results", methods=["GET"])
     def get_results() -> jsonify:
-        """Return aggregated submission counts by group and activity."""
+        """Return aggregated time allocation data by group and activity."""
         session = SessionLocal()
         try:
-            query = session.query(
-                models.ActivityLog.group_id,
-                models.ActivityLog.activity,
-                func.count(models.ActivityLog.id).label("count"),
-            )
+            # Get TimeAllocation entries
+            query = session.query(models.TimeAllocation)
 
             # Optional filters
             group_id = request.args.get("group_id")
@@ -125,36 +122,92 @@ def create_app(config_object: dict | None = None) -> Flask:
             end_date = request.args.get("end_date")
 
             if group_id:
-                query = query.filter(models.ActivityLog.group_id == group_id)
+                query = query.filter(models.TimeAllocation.group_id == group_id)
 
             if start_date:
                 try:
                     start_dt = datetime.fromisoformat(start_date)
-                    query = query.filter(models.ActivityLog.timestamp >= start_dt)
+                    query = query.filter(models.TimeAllocation.timestamp >= start_dt)
                 except ValueError:
                     return jsonify({"error": "Invalid start_date"}), 400
 
             if end_date:
                 try:
                     end_dt = datetime.fromisoformat(end_date)
-                    query = query.filter(models.ActivityLog.timestamp <= end_dt)
+                    query = query.filter(models.TimeAllocation.timestamp <= end_dt)
                 except ValueError:
                     return jsonify({"error": "Invalid end_date"}), 400
 
-            rows = (
-                query.group_by(models.ActivityLog.group_id, models.ActivityLog.activity).all()
-            )
+            allocations = query.all()
 
-            results = [
-                {
-                    "group_id": r.group_id,
-                    "activity": r.activity,
-                    "count": r.count,
-                }
-                for r in rows
-            ]
+            # Aggregate the data - sum percentages across all submissions
+            group_activity_totals = {}
+            
+            for allocation in allocations:
+                group_id = allocation.group_id
+                activities = allocation.activities
+                    
+                for activity, percentage in activities.items():
+                    key = (group_id, activity)
+                    if key not in group_activity_totals:
+                        group_activity_totals[key] = 0
+                    group_activity_totals[key] += percentage
+
+            # Convert to the format expected by the dashboard
+            results = []
+            for (group_id, activity), total_percentage in group_activity_totals.items():
+                results.append({
+                    "group_id": group_id,
+                    "activity": activity,
+                    "count": total_percentage,  # Keep as percentage for proper display
+                })
+
             return jsonify(results)
-        except Exception:  # pragma: no cover - unexpected DB errors
+        except Exception as e:  # pragma: no cover - unexpected DB errors
+            print(f"Error in get_results: {e}")
+            return jsonify({"error": "Server error"}), 500
+        finally:
+            session.close()
+
+    @app.route("/api/submit-allocation", methods=["POST"])
+    def submit_time_allocation() -> jsonify:
+        """Receive and validate a comprehensive time allocation submission."""
+        data = request.get_json(silent=True) or {}
+
+        # Validate required fields
+        if not data.get("group_id") or not data.get("activities"):
+            return jsonify({"error": "Missing required fields: group_id, activities"}), 400
+
+        # Validate group_id
+        config = load_config(Path(app.config["DCRI_CONFIG_PATH"]))
+        valid_groups = {g["id"] for g in config.get("groups", [])}
+        if data["group_id"] not in valid_groups:
+            return jsonify({"error": "Invalid group_id"}), 400
+
+        # Validate activities exist in config
+        valid_activities = {a["category"] for a in config.get("activities", [])}
+        for activity in data["activities"].keys():
+            if activity not in valid_activities:
+                return jsonify({"error": f"Invalid activity: {activity}"}), 400
+
+        # Validate percentages sum to 100 (with small tolerance for floating point)
+        total_percentage = sum(data["activities"].values())
+        if abs(total_percentage - 100.0) > 0.1:
+            return jsonify({"error": f"Percentages must sum to 100%, got {total_percentage}%"}), 400
+
+        session = SessionLocal()
+        try:
+            allocation_entry = models.TimeAllocation(
+                group_id=data["group_id"],
+                activities=data["activities"],
+                feedback=data.get("feedback"),
+            )
+            session.add(allocation_entry)
+            session.commit()
+            return jsonify({"status": "success", "id": allocation_entry.id})
+        except Exception as e:  # pragma: no cover
+            session.rollback()
+            print(f"Database error: {e}")
             return jsonify({"error": "Server error"}), 500
         finally:
             session.close()

@@ -1,0 +1,82 @@
+[
+  {
+    "group_id": "facilities",
+    "activities": {
+      "Administration": 40.0,
+      "Project Management": 30.0,
+      "Meeting": 20.0,
+      "Other": 10.0
+    },
+    "feedback": "Facilities team focuses heavily on administrative tasks and project coordination"
+  },
+  {
+    "group_id": "it",
+    "activities": {
+      "Development": 45.0,
+      "Administration": 25.0,
+      "Meeting": 20.0,
+      "Project Management": 10.0
+    },
+    "feedback": "IT team spends most time on development work"
+  },
+  {
+    "group_id": "qa",
+    "activities": {
+      "Project Management": 50.0,
+      "Analysis": 25.0,
+      "Meeting": 15.0,
+      "Administration": 10.0
+    },
+    "feedback": "QA heavily focused on project management activities"
+  },
+  {
+    "group_id": "statistics",
+    "activities": {
+      "Analysis": 60.0,
+      "Research": 25.0,
+      "Meeting": 10.0,
+      "Administration": 5.0
+    },
+    "feedback": "Statistics team primarily does analysis work"
+  },
+  {
+    "group_id": "ctti",
+    "activities": {
+      "Research": 45.0,
+      "Analysis": 30.0,
+      "Meeting": 15.0,
+      "Administration": 10.0
+    },
+    "feedback": "CTTI balances research and analysis activities"
+  },
+  {
+    "group_id": "data_solutions",
+    "activities": {
+      "Analysis": 40.0,
+      "Development": 35.0,
+      "Meeting": 15.0,
+      "Administration": 10.0
+    },
+    "feedback": "Data Solutions splits time between analysis and development"
+  },
+  {
+    "group_id": "imaging",
+    "activities": {
+      "Project Management": 35.0,
+      "Analysis": 30.0,
+      "Meeting": 20.0,
+      "Administration": 15.0
+    },
+    "feedback": "Imaging team manages projects and analyzes data"
+  },
+  {
+    "group_id": "finance",
+    "activities": {
+      "Administration": 60.0,
+      "Meeting": 25.0,
+      "Analysis": 10.0,
+      "Other": 5.0
+    },
+    "feedback": "Finance heavily focused on administrative tasks"
+  }
+]
