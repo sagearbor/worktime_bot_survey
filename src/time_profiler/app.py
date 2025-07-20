@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
+import os
 
 from flask import Flask, jsonify, request, render_template
 import asyncio
@@ -58,11 +59,18 @@ def create_app(config_object: dict | None = None) -> Flask:
 
     # Initialize chatbot service with platform adapters
     from .chatbot.base import BaseChatbotService
-    from .chatbot.adapters import TeamsAdapter, WebChatAdapter
+    from .chatbot.adapters import TeamsAdapter, WebChatAdapter, SlackAdapter
 
     chatbot_service = BaseChatbotService()
-    chatbot_service.register_adapter("teams", TeamsAdapter())
-    chatbot_service.register_adapter("web", WebChatAdapter())
+    enabled = os.getenv("ENABLED_CHATBOT_PLATFORMS", "web,teams")
+    platforms = {p.strip().lower() for p in enabled.split(',') if p.strip()}
+
+    if "teams" in platforms:
+        chatbot_service.register_adapter("teams", TeamsAdapter())
+    if "web" in platforms:
+        chatbot_service.register_adapter("web", WebChatAdapter())
+    if "slack" in platforms:
+        chatbot_service.register_adapter("slack", SlackAdapter())
 
     @app.route("/api/config", methods=["GET"])
     def get_config() -> jsonify:
@@ -331,6 +339,10 @@ def create_app(config_object: dict | None = None) -> Flask:
     @app.route("/api/teams/messages", methods=["POST"])
     def teams_messages() -> jsonify:
         """Endpoint for Microsoft Teams bot messages."""
+        verify = os.getenv("TEAMS_VERIFY_TOKEN")
+        if verify and request.headers.get("Authorization") != f"Bearer {verify}":
+            return jsonify({"error": "Unauthorized"}), 401
+
         raw = request.get_json(silent=True) or {}
         response = asyncio.run(chatbot_service.process_message("teams", raw))
         return jsonify({"text": response.text})
