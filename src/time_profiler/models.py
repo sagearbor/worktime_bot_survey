@@ -13,7 +13,7 @@ class ActivityLog(Base):
     group_id = Column(String, nullable=False)
     activity = Column(String, nullable=False)
     sub_activity = Column(String, nullable=False)
-    percent_work = Column(Float, nullable=True)
+    hours_work = Column(Float, nullable=True)
     feedback = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -31,7 +31,7 @@ class TimeAllocation(Base):
     
     id = Column(Integer, primary_key=True)
     group_id = Column(String, nullable=False)
-    activities = Column(JSON, nullable=False)  # {"Meeting": 25.5, "Research": 30.0, ...}
+    activities = Column(JSON, nullable=False)  # {"Meeting": 12.5, "Research": 20.0, ...} (hours per week)
     feedback = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     

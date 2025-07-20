@@ -13,7 +13,7 @@
             max-width: 800px;
             margin: 0 auto;
         }
-        .percentage-input {
+        .hours-input {
             width: 80px;
         }
         .total-display {
@@ -37,7 +37,7 @@
         <div class="columns is-centered">
             <div class="column form-container">
                 <h1 class="title has-text-centered">DCRI Time Allocation Survey</h1>
-                <p class="subtitle has-text-centered">Please allocate your work time across activities (should total 100%)</p>
+                <p class="subtitle has-text-centered">Please estimate how many hours per week you spend on each activity</p>
                 
                 <form id="time-allocation-form">
                     <!-- Department Selection -->
@@ -66,12 +66,12 @@
                             <div class="level">
                                 <div class="level-left">
                                     <div class="level-item">
-                                        <span class="total-display">Total: <span id="total-percentage">0</span>%</span>
+                                        <span class="total-display">Total: <span id="total-hours">0</span> hours</span>
                                     </div>
                                 </div>
                                 <div class="level-right">
                                     <div class="level-item">
-                                        <span id="total-status" class="total-warning">Must equal 100%</span>
+                                        <span id="total-status" class="total-valid">Ready when department selected</span>
                                     </div>
                                 </div>
                             </div>
@@ -145,11 +145,11 @@
                     inputControl.className = "control";
                     
                     const input = document.createElement("input");
-                    input.className = "input percentage-input";
+                    input.className = "input hours-input";
                     input.type = "number";
                     input.min = "0";
-                    input.max = "100";
-                    input.step = "0.1";
+                    input.max = "168";
+                    input.step = "0.5";
                     input.id = `activity-${index}`;
                     input.dataset.activity = activity.category;
                     input.placeholder = "0.0";
@@ -157,12 +157,12 @@
                     const percentControl = document.createElement("div");
                     percentControl.className = "control";
                     
-                    const percentAddon = document.createElement("span");
-                    percentAddon.className = "button is-static";
-                    percentAddon.textContent = "%";
+                    const hoursAddon = document.createElement("span");
+                    hoursAddon.className = "button is-static";
+                    hoursAddon.textContent = "hrs";
                     
                     inputControl.appendChild(input);
-                    percentControl.appendChild(percentAddon);
+                    percentControl.appendChild(hoursAddon);
                     inputGroup.appendChild(inputControl);
                     inputGroup.appendChild(percentControl);
                     
@@ -190,7 +190,7 @@
                     document.getElementById("feedback-box").style.display = "block";
                 }
 
-                // Add percentage validation
+                // Add hours validation
                 function updateTotal() {
                     const inputs = document.querySelectorAll('input[data-activity]');
                     let total = 0;
@@ -200,25 +200,23 @@
                         total += value;
                     });
                     
-                    const totalSpan = document.getElementById("total-percentage");
+                    const totalSpan = document.getElementById("total-hours");
                     const statusSpan = document.getElementById("total-status");
                     const submitBtn = document.getElementById("submit-btn");
                     const groupSelect = document.getElementById("group-select");
                     
                     totalSpan.textContent = total.toFixed(1);
                     
-                    if (Math.abs(total - 100) < 0.1 && groupSelect.value) {
+                    if (groupSelect.value && total > 0) {
                         statusSpan.textContent = "✓ Ready to submit";
                         statusSpan.className = "total-valid";
                         submitBtn.disabled = false;
+                    } else if (!groupSelect.value) {
+                        statusSpan.textContent = "⚠ Select department";
+                        statusSpan.className = "total-warning";
+                        submitBtn.disabled = true;
                     } else {
-                        if (total > 100) {
-                            statusSpan.textContent = "⚠ Over 100%";
-                        } else if (total < 100) {
-                            statusSpan.textContent = "⚠ Under 100%";
-                        } else {
-                            statusSpan.textContent = "⚠ Select department";
-                        }
+                        statusSpan.textContent = "⚠ Enter at least some hours";
                         statusSpan.className = "total-warning";
                         submitBtn.disabled = true;
                     }
@@ -239,11 +237,11 @@
                     const feedback = document.getElementById("feedback").value;
                     const activities = {};
                     
-                    // Collect all activity percentages
+                    // Collect all activity hours
                     document.querySelectorAll('input[data-activity]').forEach(input => {
-                        const percentage = parseFloat(input.value) || 0;
-                        if (percentage > 0) {
-                            activities[input.dataset.activity] = percentage;
+                        const hours = parseFloat(input.value) || 0;
+                        if (hours > 0) {
+                            activities[input.dataset.activity] = hours;
                         }
                     });
                     

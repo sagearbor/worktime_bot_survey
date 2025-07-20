@@ -5,7 +5,13 @@
       "Bash(python:*)",
       "Bash(git config:*)",
       "Bash(cp:*)",
-      "Bash(alembic revision:*)"
+      "Bash(alembic revision:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)",
+      "Bash(alembic upgrade:*)",
+      "Bash(source:*)",
+      "Bash(venv/bin/python:*)",
+      "Bash(pip install flask flask-cors sqlalchemy alembic)"
     ],
     "deny": []
   }

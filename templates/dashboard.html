@@ -41,7 +41,7 @@
                 <div class="control">
                     <label class="radio">
                         <input type="radio" name="view-type" value="count" checked>
-                        Count
+                        Hours
                     </label>
                     <label class="radio">
                         <input type="radio" name="view-type" value="percentage">
@@ -108,8 +108,8 @@
                     ? Object.values(activityTotals).map(count => ((count / totalActivityCount) * 100).toFixed(1))
                     : Object.values(activityTotals);
 
-                const yAxisLabel = isPercentage ? "Percentage (%)" : "Number of Entries";
-                const datasetLabel = isPercentage ? "%" : "Count";
+                const yAxisLabel = isPercentage ? "Percentage (%)" : "Hours per Week";
+                const datasetLabel = isPercentage ? "%" : "Hours";
 
                 container.innerHTML = "";
                 

@@ -96,7 +96,7 @@ def create_app(config_object: dict | None = None) -> Flask:
                 group_id=data["group_id"],
                 activity=data["activity"],
                 sub_activity=data["sub_activity"],
-                percent_work=data.get("percent_work"),
+                hours_work=data.get("hours_work"),
                 feedback=feedback_text,
             )
             session.add(log_entry)
@@ -140,26 +140,35 @@ def create_app(config_object: dict | None = None) -> Flask:
 
             allocations = query.all()
 
-            # Aggregate the data - sum percentages across all submissions
+            # Aggregate the data - sum hours across all submissions and calculate percentages
             group_activity_totals = {}
+            group_totals = {}
             
             for allocation in allocations:
                 group_id = allocation.group_id
                 activities = allocation.activities
+                
+                # Track total hours per group for percentage calculation
+                if group_id not in group_totals:
+                    group_totals[group_id] = 0
+                group_totals[group_id] += sum(activities.values())
                     
-                for activity, percentage in activities.items():
+                for activity, hours in activities.items():
                     key = (group_id, activity)
                     if key not in group_activity_totals:
                         group_activity_totals[key] = 0
-                    group_activity_totals[key] += percentage
+                    group_activity_totals[key] += hours
 
-            # Convert to the format expected by the dashboard
+            # Convert to percentages for dashboard display
             results = []
-            for (group_id, activity), total_percentage in group_activity_totals.items():
+            for (group_id, activity), total_hours in group_activity_totals.items():
+                group_total_hours = group_totals[group_id]
+                percentage = (total_hours / group_total_hours * 100) if group_total_hours > 0 else 0
                 results.append({
                     "group_id": group_id,
                     "activity": activity,
-                    "count": total_percentage,  # Keep as percentage for proper display
+                    "count": percentage,  # Convert hours to percentage for display
+                    "total_hours": total_hours,  # Include raw hours for reference
                 })
 
             return jsonify(results)
@@ -190,10 +199,10 @@ def create_app(config_object: dict | None = None) -> Flask:
             if activity not in valid_activities:
                 return jsonify({"error": f"Invalid activity: {activity}"}), 400
 
-        # Validate percentages sum to 100 (with small tolerance for floating point)
-        total_percentage = sum(data["activities"].values())
-        if abs(total_percentage - 100.0) > 0.1:
-            return jsonify({"error": f"Percentages must sum to 100%, got {total_percentage}%"}), 400
+        # Validate that hours are positive numbers
+        for activity, hours in data["activities"].items():
+            if not isinstance(hours, (int, float)) or hours < 0:
+                return jsonify({"error": f"Invalid hours for {activity}: must be a positive number"}), 400
 
         session = SessionLocal()
         try:
