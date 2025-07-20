@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from datetime import datetime
 import json
+import logging
 
 from ..models import (
     ChatbotFeedback,
@@ -88,6 +89,13 @@ class BaseChatbotService:
         self.adapters: Dict[str, ChatbotPlatformAdapter] = {}
         self.conversation_states: Dict[str, ConversationState] = {}
         self.nlp = NLPProcessor()
+        self.logger = logging.getLogger("chatbot")
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(logging.INFO)
         self.message_handlers: Dict[str, callable] = {
             "time_allocation": self._handle_time_allocation,
             "problem_report": self._handle_problem_report,
@@ -109,15 +117,16 @@ class BaseChatbotService:
         """Process incoming message from any platform."""
         if platform not in self.adapters:
             raise ValueError(f"Unknown platform: {platform}")
-        
+
         adapter = self.adapters[platform]
         
         # Authenticate and parse message
         user_id = await adapter.authenticate_user(raw_message)
         if not user_id:
             return ChatResponse("Sorry, I couldn't authenticate your identity.")
-        
+
         message = await adapter.parse_message(raw_message)
+        self.logger.info("Received message from %s on %s", user_id, platform)
         
         # Store the feedback in database
         await self._store_chatbot_feedback(message)
@@ -126,11 +135,17 @@ class BaseChatbotService:
         message_type = self._classify_message(message.text)
         handler = self.message_handlers.get(message_type, self.message_handlers["general"])
         
-        response = await handler(message)
-        
-        # Send response back through the adapter
-        await adapter.send_message(user_id, response)
-        
+        try:
+            response = await handler(message)
+        except Exception as e:
+            self.logger.exception("Handler error")
+            response = ChatResponse("Sorry, something went wrong processing your message.")
+
+        try:
+            await adapter.send_message(user_id, response)
+        except Exception as e:
+            self.logger.exception("Send message error")
+
         return response
     
     def _classify_message(self, text: str) -> str:
@@ -163,9 +178,10 @@ class BaseChatbotService:
             )
             session.add(feedback)
             session.commit()
+            self.logger.info("Stored feedback from %s", message.user_id)
         except Exception as e:
             session.rollback()
-            print(f"Error storing chatbot feedback: {e}")
+            self.logger.exception("Error storing chatbot feedback")
         finally:
             session.close()
     
@@ -203,7 +219,7 @@ class BaseChatbotService:
             )
         except Exception as e:
             session.rollback()
-            print(f"Error storing time allocation: {e}")
+            self.logger.exception("Error storing time allocation")
             response = ChatResponse("There was an error recording your allocation.")
         finally:
             session.close()
@@ -234,7 +250,7 @@ class BaseChatbotService:
                 message_type="problem_report",
             )
         except Exception as e:
-            print(f"Error storing problem report: {e}")
+            self.logger.exception("Error storing problem report")
             response = ChatResponse("There was an error recording the problem.")
         finally:
             state.reset()

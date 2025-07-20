@@ -35,5 +35,22 @@ services:
       db:
         condition: service_healthy
 
+  chatbot:
+    container_name: timeprofiler_chatbot
+    build:
+      context: .
+      dockerfile: Dockerfile.chatbot
+    command: python src/time_profiler/chatbot_server.py
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./config:/usr/src/app/config
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   postgres_data:
