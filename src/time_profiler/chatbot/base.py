@@ -8,8 +8,13 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 
-from ..models import ChatbotFeedback
+from ..models import (
+    ChatbotFeedback,
+    TimeAllocation,
+    ProblemIdentification,
+)
 from ..app import SessionLocal
+from .nlp_processor import NLPProcessor
 
 
 @dataclass
@@ -78,10 +83,11 @@ class ConversationState:
 
 class BaseChatbotService:
     """Core chatbot service with platform abstraction."""
-    
+
     def __init__(self):
         self.adapters: Dict[str, ChatbotPlatformAdapter] = {}
         self.conversation_states: Dict[str, ConversationState] = {}
+        self.nlp = NLPProcessor()
         self.message_handlers: Dict[str, callable] = {
             "time_allocation": self._handle_time_allocation,
             "problem_report": self._handle_problem_report,
@@ -167,34 +173,89 @@ class BaseChatbotService:
         """Handle time allocation related messages."""
         state = self.get_conversation_state(message.user_id)
         
-        # Simple flow for collecting time allocation data
+        # Conversation flow
         if state.current_flow != "time_allocation":
             state.current_flow = "time_allocation"
             return ChatResponse(
-                "I'll help you log your time allocation. Can you tell me what percentage of your time you spent on different activities this week?",
+                "I'll help you log your time allocation. Please provide the approximate percentage of time you spent on each activity.",
                 message_type="time_allocation",
                 suggested_actions=["60% meetings, 30% research, 10% admin"]
             )
-        
-        # TODO: Parse time allocation from natural language
-        # For now, return a simple acknowledgment
-        return ChatResponse(
-            "Thank you for sharing your time allocation. I've recorded this information and will use it to identify patterns and potential improvements.",
-            message_type="time_allocation"
-        )
+
+        allocations = self.nlp.parse_time_allocation(message.text)
+        if not allocations:
+            return ChatResponse(
+                "Sorry, I couldn't understand your allocation. Please use a format like '60% meetings, 30% research'.",
+                message_type="time_allocation"
+            )
+
+        session = SessionLocal()
+        try:
+            entry = TimeAllocation(
+                group_id=message.user_id,
+                activities=allocations
+            )
+            session.add(entry)
+            session.commit()
+            response = ChatResponse(
+                "Thank you for sharing your time allocation. I've recorded this information.",
+                message_type="time_allocation"
+            )
+        except Exception as e:
+            session.rollback()
+            print(f"Error storing time allocation: {e}")
+            response = ChatResponse("There was an error recording your allocation.")
+        finally:
+            session.close()
+            state.reset()
+
+        return response
     
     async def _handle_problem_report(self, message: ChatMessage) -> ChatResponse:
         """Handle problem reporting messages."""
-        return ChatResponse(
-            "I understand you're experiencing some challenges. I've recorded your feedback and will analyze it along with others to identify common issues that need attention. Can you provide more details about the impact on your work?",
-            message_type="problem_report"
-        )
+        state = self.get_conversation_state(message.user_id)
+
+        if state.current_flow != "problem_report":
+            state.current_flow = "problem_report"
+            return ChatResponse(
+                "I'm sorry to hear you're facing issues. Could you briefly describe the problem?",
+                message_type="problem_report",
+            )
+
+        session = SessionLocal()
+        try:
+            problem = ProblemIdentification(description=message.text)
+            session.add(problem)
+            session.commit()
+            response = ChatResponse(
+                "Thanks, I've logged this problem for review.",
+                message_type="problem_report",
+            )
+        except Exception as e:
+            session.rollback()
+            print(f"Error storing problem report: {e}")
+            response = ChatResponse("There was an error recording the problem.")
+        finally:
+            session.close()
+            state.reset()
+
+        return response
     
     async def _handle_success_story(self, message: ChatMessage) -> ChatResponse:
         """Handle success story messages."""
+        state = self.get_conversation_state(message.user_id)
+
+        if state.current_flow != "success_story":
+            state.current_flow = "success_story"
+            return ChatResponse(
+                "I'd love to hear about your success! Please tell me what went well.",
+                message_type="success_story",
+            )
+
+        state.reset()
         return ChatResponse(
-            "That's great to hear about your success! I've recorded this positive feedback. Stories like yours help us understand what's working well and can be shared as best practices.",
-            message_type="success_story"
+            "Thanks for sharing your success story!",
+            message_type="success_story",
         )
     
     async def _handle_general_query(self, message: ChatMessage) -> ChatResponse:
