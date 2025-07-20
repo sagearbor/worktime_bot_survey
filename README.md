@@ -22,15 +22,17 @@ docker compose up --build
 ```
 
 ### Local Development
+
+#### Easy Startup (Recommended - Local SQLite)
 ```bash
-# Install dependencies
-pip install .
+# Default: Local development with SQLite (most robust)
+python start_dev.py
 
-# Create database tables
-python create_tables.py
+# Alternative: Shell script (Linux/Mac/WSL)
+./dev.sh
 
-# Start application
-python -m src.time_profiler.main
+# If you want Docker/PostgreSQL (optional)
+python start_dev.py --docker
 ```
 
 Access the application at:

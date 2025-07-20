@@ -6,6 +6,13 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
+import sys
+from pathlib import Path
+
+# Add the src directory to Python path for imports
+src_dir = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(src_dir))
+
 from time_profiler.app import Base
 
 # this is the Alembic Config object, which provides

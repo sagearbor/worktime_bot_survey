@@ -1,4 +1,5 @@
 # AI Developer Instructions (AGENTS.md)
+*Compatible with OpenAI Codex, Claude Code, and other AI development assistants*
 
 ## 1. Your Role and Objective
 
