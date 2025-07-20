@@ -1,0 +1,25 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.11/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.11",
+  "version": "0.1.0",
+  "id": "dcri-bot",
+  "packageName": "com.dcri.timebot",
+  "name": {
+    "short": "DCRI TimeBot",
+    "full": "DCRI Time Allocation Bot"
+  },
+  "description": {
+    "short": "Collects time allocation and feedback",
+    "full": "Bot for logging time allocation and reporting problems within Microsoft Teams."
+  },
+  "bots": [
+    {
+      "botId": "{{BOT_APP_ID}}",
+      "scopes": ["personal"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": []
+}

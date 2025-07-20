@@ -14,7 +14,7 @@ class NLPProcessor:
 
     def __init__(self, config_path: Path | str | None = None):
         if config_path is None:
-            config_path = Path(__file__).resolve().parents[2] / "config" / "dcri_config.json.example"
+            config_path = Path(__file__).resolve().parents[3] / "config" / "dcri_config.json.example"
         self.config_path = Path(config_path)
         self.config = load_config(self.config_path)
         self.category_map = {
