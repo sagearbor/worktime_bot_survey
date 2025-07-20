@@ -8,8 +8,10 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 
-from ..models import ChatbotFeedback
-from ..app import SessionLocal
+from ..models import ChatbotFeedback, TimeAllocation
+from ..app import SessionLocal, load_config
+from .nlp_processor import extract_time_allocations, sentiment_score
+from pathlib import Path
 
 
 @dataclass
@@ -167,33 +169,58 @@ class BaseChatbotService:
         """Handle time allocation related messages."""
         state = self.get_conversation_state(message.user_id)
         
-        # Simple flow for collecting time allocation data
+        config_path = Path(__file__).resolve().parents[2] / "config" / "dcri_config.json"
+
         if state.current_flow != "time_allocation":
             state.current_flow = "time_allocation"
             return ChatResponse(
-                "I'll help you log your time allocation. Can you tell me what percentage of your time you spent on different activities this week?",
+                "I'll help you log your time allocation. Share percentages like '60% meetings, 40% research'.",
                 message_type="time_allocation",
-                suggested_actions=["60% meetings, 30% research, 10% admin"]
             )
-        
-        # TODO: Parse time allocation from natural language
-        # For now, return a simple acknowledgment
+
+        allocations = extract_time_allocations(message.text, config_path)
+        if allocations:
+            session = SessionLocal()
+            try:
+                entry = TimeAllocation(
+                    group_id=message.user_id,
+                    activities=allocations,
+                )
+                session.add(entry)
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                print(f"Error storing allocation: {e}")
+            finally:
+                session.close()
+            state.reset()
+            return ChatResponse(
+                "Thanks, I've saved your time allocation.",
+                message_type="time_allocation",
+            )
+
         return ChatResponse(
-            "Thank you for sharing your time allocation. I've recorded this information and will use it to identify patterns and potential improvements.",
-            message_type="time_allocation"
+            "Sorry, I couldn't understand that. Please provide percentages like '50% research, 50% meetings'.",
+            message_type="time_allocation",
         )
     
     async def _handle_problem_report(self, message: ChatMessage) -> ChatResponse:
         """Handle problem reporting messages."""
+        score = sentiment_score(message.text)
+        follow_up = (
+            "Thanks for letting me know. I'll escalate this issue." if score < -0.2 else
+            "Thanks for the details. I'll keep track of this problem."
+        )
         return ChatResponse(
-            "I understand you're experiencing some challenges. I've recorded your feedback and will analyze it along with others to identify common issues that need attention. Can you provide more details about the impact on your work?",
+            follow_up,
             message_type="problem_report"
         )
     
     async def _handle_success_story(self, message: ChatMessage) -> ChatResponse:
         """Handle success story messages."""
+        appreciation = "Thanks for sharing your success!"
         return ChatResponse(
-            "That's great to hear about your success! I've recorded this positive feedback. Stories like yours help us understand what's working well and can be shared as best practices.",
+            appreciation,
             message_type="success_story"
         )
     
