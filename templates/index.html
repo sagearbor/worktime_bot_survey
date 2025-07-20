@@ -13,8 +13,27 @@
             max-width: 800px;
             margin: 0 auto;
         }
-        .hours-input {
-            width: 80px;
+        .activity-checkbox {
+            margin-bottom: 0.5rem;
+        }
+        .slider-container {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #e1e1e1;
+            border-radius: 6px;
+        }
+        .slider {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+        .percentage-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        .percentage-item:last-child {
+            border-bottom: none;
         }
         .total-display {
             font-weight: bold;
@@ -37,7 +56,7 @@
         <div class="columns is-centered">
             <div class="column form-container">
                 <h1 class="title has-text-centered">DCRI Time Allocation Survey</h1>
-                <p class="subtitle has-text-centered">Please estimate how many hours per week you spend on each activity</p>
+                <p class="subtitle has-text-centered">Use sliders to show relative time spent on each activity (leave at 0 if not applicable)</p>
                 
                 <form id="time-allocation-form">
                     <!-- Department Selection -->
@@ -54,26 +73,19 @@
                         </div>
                     </div>
 
-                    <!-- Time Allocation -->
+                    <!-- Time Allocation Sliders -->
                     <div class="box">
                         <h3 class="title is-5">Time Allocation by Activity</h3>
-                        <div id="activities-container">
-                            <!-- Activities will be populated here -->
+                        <p class="help mb-4">Move sliders to show relative time spent (percentages calculated automatically):</p>
+                        <div id="sliders-container">
+                            <!-- Sliders will be populated here -->
                         </div>
                         
-                        <!-- Total Display -->
-                        <div class="field">
-                            <div class="level">
-                                <div class="level-left">
-                                    <div class="level-item">
-                                        <span class="total-display">Total: <span id="total-hours">0</span> hours</span>
-                                    </div>
-                                </div>
-                                <div class="level-right">
-                                    <div class="level-item">
-                                        <span id="total-status" class="total-valid">Ready when department selected</span>
-                                    </div>
-                                </div>
+                        <!-- Real-time Percentage Display -->
+                        <div class="box has-background-light mt-4" id="percentage-section" style="display: none;">
+                            <h4 class="title is-6">Your Time Breakdown:</h4>
+                            <div id="percentage-display">
+                                <!-- Percentages will be shown here -->
                             </div>
                         </div>
                     </div>
@@ -125,109 +137,139 @@
                     groupSelect.appendChild(opt);
                 });
 
-                // Create activity inputs
-                const activitiesContainer = document.getElementById("activities-container");
+                // Create sliders for all activities
+                const slidersContainer = document.getElementById("sliders-container");
                 config.activities.forEach((activity, index) => {
-                    const activityDiv = document.createElement("div");
-                    activityDiv.className = "field";
+                    const sliderDiv = document.createElement("div");
+                    sliderDiv.className = "slider-container";
                     
                     const label = document.createElement("label");
-                    label.className = "label";
+                    label.className = "label is-small";
                     label.textContent = activity.category;
                     
-                    const control = document.createElement("div");
-                    control.className = "control";
-                    
-                    const inputGroup = document.createElement("div");
-                    inputGroup.className = "field has-addons";
-                    
-                    const inputControl = document.createElement("div");
-                    inputControl.className = "control";
-                    
-                    const input = document.createElement("input");
-                    input.className = "input hours-input";
-                    input.type = "number";
-                    input.min = "0";
-                    input.max = "168";
-                    input.step = "0.5";
-                    input.id = `activity-${index}`;
-                    input.dataset.activity = activity.category;
-                    input.placeholder = "0.0";
-                    
-                    const percentControl = document.createElement("div");
-                    percentControl.className = "control";
-                    
-                    const hoursAddon = document.createElement("span");
-                    hoursAddon.className = "button is-static";
-                    hoursAddon.textContent = "hrs";
-                    
-                    inputControl.appendChild(input);
-                    percentControl.appendChild(hoursAddon);
-                    inputGroup.appendChild(inputControl);
-                    inputGroup.appendChild(percentControl);
-                    
                     // Add sub-activities as help text
-                    let helpText = "";
                     if (activity.sub_activities && activity.sub_activities.length > 0) {
-                        helpText = "Includes: " + activity.sub_activities.join(", ");
+                        const help = document.createElement("p");
+                        help.className = "help is-size-7 mt-0 mb-2";
+                        help.textContent = "Includes: " + activity.sub_activities.join(", ");
+                        sliderDiv.appendChild(label);
+                        sliderDiv.appendChild(help);
+                    } else {
+                        sliderDiv.appendChild(label);
                     }
                     
-                    const help = document.createElement("p");
-                    help.className = "help";
-                    help.textContent = helpText;
+                    const sliderWrapper = document.createElement("div");
+                    sliderWrapper.style.display = "flex";
+                    sliderWrapper.style.alignItems = "center";
+                    sliderWrapper.style.gap = "1rem";
                     
-                    activityDiv.appendChild(label);
-                    activityDiv.appendChild(inputGroup);
-                    if (helpText) {
-                        activityDiv.appendChild(help);
-                    }
+                    const slider = document.createElement("input");
+                    slider.type = "range";
+                    slider.className = "slider";
+                    slider.min = "0";
+                    slider.max = "100";
+                    slider.value = "0";
+                    slider.dataset.activity = activity.category;
+                    slider.id = `slider-${index}`;
                     
-                    activitiesContainer.appendChild(activityDiv);
+                    const valueDisplay = document.createElement("span");
+                    valueDisplay.className = "tag is-light";
+                    valueDisplay.id = `value-${index}`;
+                    valueDisplay.textContent = "0";
+                    valueDisplay.style.minWidth = "3rem";
+                    
+                    sliderWrapper.appendChild(slider);
+                    sliderWrapper.appendChild(valueDisplay);
+                    sliderDiv.appendChild(sliderWrapper);
+                    slidersContainer.appendChild(sliderDiv);
+                    
+                    // Add event listener for this slider
+                    slider.addEventListener('input', updatePercentages);
                 });
+
+                // Initialize percentages
+                updatePercentages();
 
                 // Show feedback if enabled
                 if (config.enableFreeTextFeedback) {
                     document.getElementById("feedback-box").style.display = "block";
                 }
 
-                // Add hours validation
-                function updateTotal() {
-                    const inputs = document.querySelectorAll('input[data-activity]');
-                    let total = 0;
+                // No need for updateSliders function anymore
+                
+                // Calculate and display percentages
+                function updatePercentages() {
+                    const sliders = document.querySelectorAll('.slider');
+                    const percentageDisplay = document.getElementById("percentage-display");
+                    const percentageSection = document.getElementById("percentage-section");
                     
-                    inputs.forEach(input => {
-                        const value = parseFloat(input.value) || 0;
+                    // Calculate total of all slider values
+                    let total = 0;
+                    const values = {};
+                    const activeActivities = {};
+                    
+                    sliders.forEach(slider => {
+                        const value = parseInt(slider.value);
                         total += value;
+                        values[slider.dataset.activity] = value;
+                        
+                        if (value > 0) {
+                            activeActivities[slider.dataset.activity] = value;
+                        }
+                        
+                        // Update individual value display
+                        const valueDisplay = document.getElementById(`value-${slider.id.split('-')[1]}`);
+                        if (valueDisplay) {
+                            valueDisplay.textContent = value;
+                        }
                     });
                     
-                    const totalSpan = document.getElementById("total-hours");
-                    const statusSpan = document.getElementById("total-status");
+                    // Show/hide percentage section based on whether any sliders are used
+                    if (total === 0) {
+                        percentageSection.style.display = "none";
+                        percentageDisplay.innerHTML = "";
+                    } else {
+                        percentageSection.style.display = "block";
+                        
+                        // Calculate percentages only for active activities
+                        let html = "";
+                        Object.entries(activeActivities).forEach(([activity, value]) => {
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            html += `<div class="percentage-item">
+                                        <span><strong>${activity}</strong></span>
+                                        <span class="tag is-info">${percentage}%</span>
+                                    </div>`;
+                        });
+                        
+                        percentageDisplay.innerHTML = html;
+                    }
+                    
+                    updateSubmitButton();
+                }
+                
+                // Update submit button state
+                function updateSubmitButton() {
                     const submitBtn = document.getElementById("submit-btn");
                     const groupSelect = document.getElementById("group-select");
+                    const sliders = document.querySelectorAll('.slider');
                     
-                    totalSpan.textContent = total.toFixed(1);
+                    // Check if any slider has a value > 0
+                    let hasActivity = false;
+                    sliders.forEach(slider => {
+                        if (parseInt(slider.value) > 0) {
+                            hasActivity = true;
+                        }
+                    });
                     
-                    if (groupSelect.value && total > 0) {
-                        statusSpan.textContent = "✓ Ready to submit";
-                        statusSpan.className = "total-valid";
+                    if (groupSelect.value && hasActivity) {
                         submitBtn.disabled = false;
-                    } else if (!groupSelect.value) {
-                        statusSpan.textContent = "⚠ Select department";
-                        statusSpan.className = "total-warning";
-                        submitBtn.disabled = true;
                     } else {
-                        statusSpan.textContent = "⚠ Enter at least some hours";
-                        statusSpan.className = "total-warning";
                         submitBtn.disabled = true;
                     }
                 }
 
                 // Add event listeners
-                document.querySelectorAll('input[data-activity]').forEach(input => {
-                    input.addEventListener('input', updateTotal);
-                });
-                
-                document.getElementById("group-select").addEventListener('change', updateTotal);
+                document.getElementById("group-select").addEventListener('change', updateSubmitButton);
 
                 // Handle form submission
                 document.getElementById("time-allocation-form").addEventListener("submit", async (e) => {
@@ -237,12 +279,30 @@
                     const feedback = document.getElementById("feedback").value;
                     const activities = {};
                     
-                    // Collect all activity hours
-                    document.querySelectorAll('input[data-activity]').forEach(input => {
-                        const hours = parseFloat(input.value) || 0;
-                        if (hours > 0) {
-                            activities[input.dataset.activity] = hours;
+                    // Collect activity percentages from sliders
+                    const sliders = document.querySelectorAll('.slider');
+                    
+                    // Calculate percentages from slider values
+                    let total = 0;
+                    const values = {};
+                    
+                    sliders.forEach(slider => {
+                        const value = parseInt(slider.value);
+                        if (value > 0) {  // Only include activities with non-zero values
+                            total += value;
+                            values[slider.dataset.activity] = value;
                         }
+                    });
+                    
+                    if (total === 0) {
+                        alert('Please move at least one slider to indicate time spent.');
+                        return;
+                    }
+                    
+                    // Convert to percentages (always sum to 100)
+                    Object.entries(values).forEach(([activity, value]) => {
+                        const percentage = (value / total) * 100;
+                        activities[activity] = percentage;
                     });
                     
                     const payload = {
@@ -271,7 +331,11 @@
                         
                         // Reset form
                         document.getElementById("time-allocation-form").reset();
-                        updateTotal();
+                        // Reset all sliders to 0
+                        document.querySelectorAll('.slider').forEach(slider => {
+                            slider.value = "0";
+                        });
+                        updatePercentages();
                         
                     } catch (err) {
                         console.error("Error submitting form:", err);
