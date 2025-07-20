@@ -11,7 +11,13 @@
       "Bash(alembic upgrade:*)",
       "Bash(source:*)",
       "Bash(venv/bin/python:*)",
-      "Bash(pip install flask flask-cors sqlalchemy alembic)"
+      "Bash(pip install flask flask-cors sqlalchemy alembic)",
+      "Bash(npm run dev:*)",
+      "Bash(pip install:*)",
+      "Bash(PYTHONPATH=/mnt/c/Users/scb2/AppData/Local/GitHubDesktop/app-3.4.20/worktime_bot_survey/src alembic revision --autogenerate -m \"Add chatbot and temporal data models\")",
+      "Bash(PYTHONPATH=/mnt/c/Users/scb2/AppData/Local/GitHubDesktop/app-3.4.20/worktime_bot_survey/src alembic upgrade head)",
+      "Bash(PYTHONPATH=/mnt/c/Users/scb2/AppData/Local/GitHubDesktop/app-3.4.20/worktime_bot_survey/src alembic stamp head)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   }
