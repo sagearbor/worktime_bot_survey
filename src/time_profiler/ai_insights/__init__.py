@@ -9,6 +9,8 @@ from .jira_integration import (
     archive_and_create_new_ticket,
     update_solution_impact,
 )
+
+from .sentiment import analyze_sentiment
 from .solution_engine import (
     SolutionEngine,
     estimate_effort,
@@ -24,6 +26,7 @@ __all__ = [
     "escalate_ticket",
     "archive_and_create_new_ticket",
     "update_solution_impact",
+    "analyze_sentiment",
     "SolutionEngine",
     "estimate_effort",
     "calculate_roi",
