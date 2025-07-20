@@ -52,6 +52,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="field">
+                        <label class="label" for="percent-work">% of Work Time</label>
+                        <div class="control">
+                            <input id="percent-work" class="input" type="number" min="0" max="100" step="0.1" placeholder="e.g., 25.5">
+                        </div>
+                        <p class="help">What percentage of your work time was spent on this activity? (Optional)</p>
+                    </div>
                     <div class="field" id="feedback-field" style="display: none;">
                         <label class="label" for="feedback">Additional Feedback</label>
                         <div class="control">
@@ -132,6 +139,13 @@
                         activity: activitySelect.value,
                         sub_activity: subSelect.value,
                     };
+                    
+                    // Add percent_work if provided
+                    const percentWork = document.getElementById("percent-work").value;
+                    if (percentWork) {
+                        payload.percent_work = parseFloat(percentWork);
+                    }
+                    
                     if (window.dcriConfig.enableFreeTextFeedback) {
                         payload.feedback = document.getElementById("feedback").value;
                     }

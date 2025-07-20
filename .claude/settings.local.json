@@ -3,7 +3,9 @@
     "allow": [
       "Bash(python3:*)",
       "Bash(python:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(cp:*)",
+      "Bash(alembic revision:*)"
     ],
     "deny": []
   }

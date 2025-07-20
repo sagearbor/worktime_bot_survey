@@ -96,6 +96,7 @@ def create_app(config_object: dict | None = None) -> Flask:
                 group_id=data["group_id"],
                 activity=data["activity"],
                 sub_activity=data["sub_activity"],
+                percent_work=data.get("percent_work"),
                 feedback=feedback_text,
             )
             session.add(log_entry)

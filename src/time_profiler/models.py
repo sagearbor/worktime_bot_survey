@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, Float
 
 from .app import Base
 
@@ -13,6 +13,7 @@ class ActivityLog(Base):
     group_id = Column(String, nullable=False)
     activity = Column(String, nullable=False)
     sub_activity = Column(String, nullable=False)
+    percent_work = Column(Float, nullable=True)
     feedback = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
 

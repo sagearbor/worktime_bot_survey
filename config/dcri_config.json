@@ -1,0 +1,91 @@
+{
+  "groups": [
+    {
+      "displayName": "C-suite / Executive Leadership",
+      "id": "c_suite",
+      "parent": "Executive Leadership"
+    },
+    { "displayName": "Finance", "id": "finance", "parent": "CFO" },
+    { "displayName": "Contracts Management", "id": "contracts_management", "parent": "CFO" },
+    { "displayName": "Sponsored Project Admin (SPA)", "id": "spa", "parent": "CFO" },
+    { "displayName": "Facilities", "id": "facilities", "parent": "CFO" },
+    { "displayName": "Corporate Comms", "id": "corp_comms", "parent": "CSO" },
+    { "displayName": "Research Proposal Development (RPD)", "id": "rpd", "parent": "CSO" },
+    { "displayName": "Quality Assurance (QA)", "id": "qa", "parent": "CSO" },
+    { "displayName": "Innovation Center (i-Cubed)", "id": "i_cubed", "parent": "CSO" },
+    { "displayName": "Operational Excellence (OE)", "id": "oe", "parent": "CSO" },
+    { "displayName": "IT", "id": "it", "parent": "CRTO" },
+    { "displayName": "Digital", "id": "digital", "parent": "CRTO" },
+    { "displayName": "Statistics", "id": "statistics", "parent": "COO" },
+    { "displayName": "Research Communications & Engagement (RC&E)", "id": "rce", "parent": "COO" },
+    { "displayName": "Data Solutions", "id": "data_solutions", "parent": "COO" },
+    { "displayName": "Clinical Trials Transformation Initiative (CTTI)", "id": "ctti", "parent": "COO" },
+    { "displayName": "Clinical Events Classification (CEC)", "id": "cec", "parent": "COO" },
+    { "displayName": "Safety Surveillance", "id": "safety_surveillance", "parent": "COO" },
+    { "displayName": "Imaging", "id": "imaging", "parent": "COO" },
+    { "displayName": "Industry Partnerships & Strategic Programs (IPSP)", "id": "ipsp", "parent": "COO" },
+    { "displayName": "Government Trials & Networks (GTN)", "id": "gtn", "parent": "COO" },
+    { "displayName": "Mega & Industry Operations (MIO)", "id": "mio", "parent": "COO" },
+    { "displayName": "Health Services Research (HSR)", "id": "hsr", "parent": "COO" },
+    { "displayName": "Small Trials/Pharmacogenomics (PA)", "id": "pa", "parent": "COO" },
+    { "displayName": "Participant Research Operations (PRO)", "id": "pro", "parent": "COO" },
+    { "displayName": "Outcomes", "id": "outcomes", "parent": "COO" },
+    { "displayName": "Academic Affairs", "id": "academic_affairs", "parent": "Deputy Exec Director" },
+    { "displayName": "CV", "id": "cv", "parent": "Deputy Exec Director" },
+    { "displayName": "Peds", "id": "peds", "parent": "Deputy Exec Director" },
+    { "displayName": "Medicine (non-CV)", "id": "medicine_non_cv", "parent": "Deputy Exec Director" },
+    { "displayName": "Biostatistics & Bioinformatics", "id": "biostats_bioinformatics", "parent": "Deputy Exec Director" },
+    { "displayName": "Surgical Sciences", "id": "surgical_sciences", "parent": "Deputy Exec Director" },
+    { "displayName": "PopHealth", "id": "pophealth", "parent": "Deputy Exec Director" }
+  ],
+  "activities": [
+    {
+      "category": "Project Management",
+      "sub_activities": [
+        "Patient Recruitment & Screening",
+        "Clinical Site Management",
+        "Regulatory Submissions & Compliance",
+        "Data Collection & Entry"
+      ]
+    },
+    {
+      "category": "Analysis",
+      "sub_activities": [
+        "Statistical Analysis & Reporting"
+      ]
+    },
+    {
+      "category": "Research",
+      "sub_activities": [
+        "Writing & Manuscript Preparation",
+        "Grant Writing & Submission"
+      ]
+    },
+    {
+      "category": "Meeting",
+      "sub_activities": [
+        "Internal Team Meetings",
+        "External Partner/Sponsor Meetings"
+      ]
+    },
+    {
+      "category": "Development",
+      "sub_activities": [
+        "IT Systems Support & Development"
+      ]
+    },
+    {
+      "category": "Administration",
+      "sub_activities": [
+        "Budget & Financial Management",
+        "Administrative Tasks (Email, Scheduling)",
+        "Training & Professional Development"
+      ]
+    },
+    {
+      "category": "Other",
+      "sub_activities": []
+    }
+  ],
+  "enableFreeTextFeedback": true
+}
