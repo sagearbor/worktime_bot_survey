@@ -87,5 +87,9 @@
       "sub_activities": []
     }
   ],
-  "enableFreeTextFeedback": true
+  "enableFreeTextFeedback": true,
+  "teams": {
+    "app_id": "YOUR_APP_ID",
+    "app_password": "YOUR_APP_PASSWORD"
+  }
 }
