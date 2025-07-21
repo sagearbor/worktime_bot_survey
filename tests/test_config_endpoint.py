@@ -14,3 +14,5 @@ def test_get_config_endpoint(tmp_path):
     assert "groups" in data
     assert "activities" in data
     assert "enableFreeTextFeedback" in data
+    assert "chatbot" in data
+    assert "slack" in data["chatbot"]
