@@ -156,3 +156,23 @@ class JiraTicketLifecycle(Base):
             f"<JiraTicketLifecycle id={self.id} ticket_key={self.ticket_key} "
             f"status={self.status} escalations={self.escalation_count}>"
         )
+
+
+class SubmissionSummary(Base):
+    """Store summarized historical submission data for a user."""
+
+    __tablename__ = "submission_summary"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String, nullable=False)
+    submission_type = Column(String, nullable=False)
+    summary_data = Column(JSON, nullable=False)
+    start_period = Column(DateTime, nullable=False)
+    end_period = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self) -> str:
+        return (
+            f"<SubmissionSummary id={self.id} user_id={self.user_id} "
+            f"type={self.submission_type}>"
+        )
