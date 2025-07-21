@@ -76,6 +76,7 @@ class SlackAdapter(ChatbotPlatformAdapter):
     """Adapter for Slack integration."""
 
     def __init__(self, bot_token: str | None = None, default_channel: str | None = None) -> None:
+        """Initialize Slack adapter from environment settings."""
         self.bot_token = bot_token or os.getenv("SLACK_BOT_TOKEN")
         if default_channel is not None:
             self.default_channel = default_channel
