@@ -770,4 +770,12 @@ def create_app(config_object: dict | None = None) -> Flask:
         finally:
             session.close()
 
+    @app.cli.command("run-retention")
+    def run_retention_cli() -> None:
+        """Run data retention cleanup tasks."""
+        from .data_retention import run_retention_tasks
+
+        run_retention_tasks()
+        print("Retention tasks completed")
+
     return app

@@ -18,7 +18,7 @@
 - [✅] CB-01a: Create `UserSubmissionHistory` model to track version/timestamp of each submission
 - [✅] CB-01b: Implement "current state" vs "historical analysis" data queries  
 - [✅] CB-01c: Add archival system for consumed chatbot feedback (mark as processed)
-- [⏳] CB-01d: Create data retention policies (latest submission per user, summarized historical trends) - *Next priority*
+- [✅] CB-01d: Create data retention policies (latest submission per user, summarized historical trends)
 
 ### [✅] Task CB-02: Enhanced Database Models for Chatbot
 **Priority**: Critical Path  
