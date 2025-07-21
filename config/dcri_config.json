@@ -88,4 +88,10 @@
     }
   ],
   "enableFreeTextFeedback": true
+  ,"chatbot": {
+    "slack": {
+      "bot_token": "YOUR_SLACK_BOT_TOKEN",
+      "default_channel": "#general"
+    }
+  }
 }

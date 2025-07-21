@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Dict, Any, Optional
 from datetime import datetime
+import os
+import requests
 
 from .base import ChatbotPlatformAdapter, ChatMessage, ChatResponse
 
@@ -72,12 +74,37 @@ class TeamsAdapter(ChatbotPlatformAdapter):
 
 class SlackAdapter(ChatbotPlatformAdapter):
     """Adapter for Slack integration."""
-    
+
+    def __init__(self, bot_token: str | None = None, default_channel: str | None = None) -> None:
+        self.bot_token = bot_token or os.getenv("SLACK_BOT_TOKEN")
+        if default_channel is not None:
+            self.default_channel = default_channel
+        else:
+            self.default_channel = os.getenv("SLACK_DEFAULT_CHANNEL", "#general")
+
     async def send_message(self, user_id: str, response: ChatResponse) -> bool:
         """Send message to Slack user."""
-        # TODO: Implement Slack Web API integration
-        print(f"Slack message to {user_id}: {response.text}")
-        return True
+        token = self.bot_token
+        if not token:
+            raise RuntimeError("Slack bot token not configured")
+
+        channel = self.default_channel
+        if response.metadata and response.metadata.get("channel"):
+            channel = response.metadata["channel"]
+        if not channel:
+            channel = user_id
+
+        payload = {"channel": channel, "text": response.text}
+        url = "https://slack.com/api/chat.postMessage"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json; charset=utf-8",
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=10)
+        if resp.status_code != 200:
+            return False
+        data = resp.json()
+        return bool(data.get("ok"))
     
     async def parse_message(self, raw_message: Dict[str, Any]) -> ChatMessage:
         """Parse Slack event format."""
