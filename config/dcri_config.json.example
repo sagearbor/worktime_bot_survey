@@ -97,5 +97,8 @@
       "bot_token": "YOUR_SLACK_BOT_TOKEN",
       "default_channel": "#general"
     }
+  },
+  "teams": {
+    "app_id": "YOUR_TEAMS_APP_ID"
   }
- }
+}
