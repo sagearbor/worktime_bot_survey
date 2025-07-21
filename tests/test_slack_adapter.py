@@ -30,4 +30,3 @@ def test_slack_send_message_failure():
         mock_post.return_value.json.return_value = {"ok": False}
         result = asyncio.run(adapter.send_message("U123", response))
         assert result is False
-
